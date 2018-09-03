@@ -1,0 +1,8 @@
+# vendored dependencies
+vendor/
+
+# libraries
+lib/
+
+# binaries
+scripturetool
