@@ -37,7 +37,11 @@ The Church of Jesus Christ of Latter-day Saints is not affiliated with, nor endo
 
 Use 'scripturetool help' for explanation of arguments and abbreviations`,
 	Args: cobra.MinimumNArgs(1),
-	Run:  run,
+	PreRun: func(_ *cobra.Command, _ []string) {
+		// set the verbosity of the logger(s)
+		parse.SetVerbosity(flags.Verbosity)
+	},
+	Run: run,
 }
 
 func init() {
@@ -57,10 +61,22 @@ func init() {
 
 // run parses the references from the arguments and sends them for retreival and display
 func run(cmd *cobra.Command, args []string) {
+
 	ch, err := parse.ReadChapter("lib/moro/5.json.tar.gz")
+	if ch == nil {
+		ch = &parse.Chapter{}
+	}
+
 	fmt.Printf(`Chapter:
 %v
 
+
+
 Error: %v
 `, *ch, err)
+
+	for i, verse := range ch.Verses {
+		v := verse.PutFootnotes()
+		fmt.Printf("Verse %s: %s\n\n", i, v)
+	}
 }
