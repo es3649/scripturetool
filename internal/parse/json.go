@@ -26,6 +26,12 @@ type Verse struct {
 	Footnotes []Footnote
 }
 
+// Footnote stores a footnote within a verse
+type Footnote struct {
+	Position  int
+	Reference string
+}
+
 // PutFootnotes returns the Text field of the verse, but inserts a footnote
 // identifier at each position indicated in the []Footnotes
 func (v *Verse) PutFootnotes() string {
@@ -39,12 +45,6 @@ func (v *Verse) PutFootnotes() string {
 	// add the slice from the position of the last footnote to the end of the verse
 	verseSlices = append(verseSlices, v.Text[v.Footnotes[len(v.Footnotes)-1].Position:])
 	return strings.Join(verseSlices, "")
-}
-
-// Footnote stores a footnote within a verse
-type Footnote struct {
-	Position  int
-	Reference string
 }
 
 // ReadChapter opens a filepath, unzips and reads the json, and returns the chapter

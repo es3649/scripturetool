@@ -21,6 +21,7 @@ var flags = struct {
 	Headings     bool
 	HeadingsOnly bool
 	Refs         bool
+	Paragraphs   bool
 }{}
 
 // Execute runs the command
@@ -57,26 +58,30 @@ func init() {
 	rootCmd.Flags().BoolVarP(&flags.Headings, "headings", "H", false, "Show headings for selected chapter(s)")
 	rootCmd.Flags().BoolVar(&flags.HeadingsOnly, "headings-only", false, "Show only the headings for selected chapter(s)")
 	rootCmd.Flags().BoolVarP(&flags.Refs, "refs", "r", true, "show full refereces with each verse displayed")
+	rootCmd.Flags().BoolVarP(&flags.Paragraphs, "pars", "p", false, "print text in paragraphs")
 }
 
 // run parses the references from the arguments and sends them for retreival and display
 func run(cmd *cobra.Command, args []string) {
 
-	ch, err := parse.ReadChapter("lib/moro/5.json.tar.gz")
-	if ch == nil {
-		ch = &parse.Chapter{}
+	err := parse.Parse(args)
+
+	if err != nil {
+		fmt.Printf("Got error %v\n", err)
 	}
+	// 	ch, err := parse.ReadChapter("lib/moro/5.json.tar.gz")
+	// 	if ch == nil {
+	// 		ch = &parse.Chapter{}
+	// 	}
 
-	fmt.Printf(`Chapter:
-%v
+	// 	fmt.Printf(`Chapter:
+	// %v
 
+	// Error: %v
+	// 		`, *ch, err)
 
-
-Error: %v
-`, *ch, err)
-
-	for i, verse := range ch.Verses {
-		v := verse.PutFootnotes()
-		fmt.Printf("Verse %s: %s\n\n", i, v)
-	}
+	// 	for i, verse := range ch.Verses {
+	// 		v := verse.PutFootnotes()
+	// 		fmt.Printf("Verse %s: %s\n\n", i, v)
+	// 	}
 }
