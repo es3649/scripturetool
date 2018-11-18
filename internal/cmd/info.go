@@ -11,7 +11,7 @@ import (
 )
 
 var helpCmd = &cobra.Command{
-	Use:   "help",
+	Use:   "info",
 	Short: "Displays help for argument formatting and abbreviations",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(`Verse Referencing:

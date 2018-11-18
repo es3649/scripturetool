@@ -67,7 +67,7 @@ func run(cmd *cobra.Command, args []string) {
 	err := parse.Parse(args)
 
 	if err != nil {
-		fmt.Printf("Got error %v\n", err)
+		fmt.Printf("Got error `%v'\n", err)
 	}
 	// 	ch, err := parse.ReadChapter("lib/moro/5.json.tar.gz")
 	// 	if ch == nil {

@@ -1,8 +1,11 @@
 package parse
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/sirupsen/logrus"
 )
 
 type analyzerState int
@@ -16,32 +19,35 @@ const (
 	aNumberState    analyzerState = 5
 	aBookState      analyzerState = 6
 	aUndefinedState analyzerState = 7
-	aEOFState       analyzerState = 8
+	aStarState      analyzerState = 8
+	aEOFState       analyzerState = 9
 )
 
 type analyzer struct {
-	value         string
-	curState      analyzerState
-	toParse       []string
-	parseString   string
-	pos           int
-	outputChannel chan token
-	stopChan      chan error
+	value       string
+	curState    analyzerState
+	toParse     []string
+	parseString string
+	pos         int
+	outputChan  chan token
+	stopChan    chan error
 }
 
 func newAnalyzer(parseStrs []string, c chan token, errChan chan error) *analyzer {
 	return &analyzer{
-		toParse:       parseStrs,
-		outputChannel: c,
-		stopChan:      errChan,
+		toParse:    parseStrs,
+		outputChan: c,
+		stopChan:   errChan,
 	}
 }
 
 func (a *analyzer) makeToken(tokType analyzerState) {
-	a.outputChannel <- token{
+	tok := token{
 		Value: strings.ToLower(a.value),
-		Type:  a.curState,
+		Type:  tokType,
 	}
+	log.WithField("token", fmt.Sprintf("%#v", tok)).Info("Token found")
+	a.outputChan <- tok
 	a.value = ""
 }
 
@@ -49,18 +55,24 @@ func (a *analyzer) analyze() error {
 	for _, curString := range a.toParse {
 		// no length 0 strings!
 		if curString == "" {
+			fmt.Print("Got empty arg")
 			continue
 		}
+		log.WithFields(logrus.Fields{"where": "analyze", "arg": curString}).Info("Analyzing argument")
 		if err := a.analyzeOne(curString); err != nil {
-			close(a.outputChannel)
+			log.WithFields(logrus.Fields{"where": "analyze", "status": "error"}).Info("Finished Analyzing (outputChan closed)")
+			close(a.outputChan)
 			return err
 		}
 	}
-	close(a.outputChannel)
+	a.makeToken(aEOFState)
+	close(a.outputChan)
+	log.WithFields(logrus.Fields{"where": "analyze", "status": "success"}).Info("Finished Analyzing (outputChan closed)")
 	return <-a.stopChan
 }
 
 func (a *analyzer) analyzeOne(curString string) error {
+
 	a.curState = aStartState
 	a.parseString = curString
 	a.pos = -1 // -1 because the first thing we do is increment it
@@ -76,6 +88,7 @@ func (a *analyzer) analyzeOne(curString string) error {
 				return a.finish()
 			}
 			c := rune(a.parseString[a.pos])
+			log.WithFields(logrus.Fields{"where": "analyze", "character": string(c), "state": a.curState}).Debug("Parsed character")
 			switch a.curState {
 			case aStartState:
 				a.start(c)
@@ -87,6 +100,8 @@ func (a *analyzer) analyzeOne(curString string) error {
 				a.comma(c)
 			case aDashState:
 				a.dash(c)
+			case aStarState:
+				a.star(c)
 			case aNumberState:
 				a.number(c)
 			case aBookState:
@@ -100,10 +115,13 @@ func (a *analyzer) finish() error {
 	switch a.curState {
 	case aNumberState:
 		a.makeToken(aNumberState)
+		return nil
 	case aBookState:
 		a.makeToken(aBookState)
+		return nil
+	default:
+		return fmt.Errorf("Invalid end of string: %s", a.value)
 	}
-	return nil
 }
 
 func (a *analyzer) semicolon(c rune) {
@@ -126,7 +144,13 @@ func (a *analyzer) dash(c rune) {
 	a.start(c)
 }
 
+func (a *analyzer) star(c rune) {
+	a.makeToken(aStarState)
+	a.start(c)
+}
+
 func (a *analyzer) number(c rune) {
+	fmt.Print(string(c))
 	if unicode.IsDigit(c) {
 		a.value += string(c)
 		return
@@ -136,7 +160,7 @@ func (a *analyzer) number(c rune) {
 }
 
 func (a *analyzer) book(c rune) {
-	if unicode.IsLetter(c) {
+	if unicode.IsLetter(c) || c == '[' || c == ']' {
 		a.value += string(c)
 		return
 	}
@@ -155,6 +179,12 @@ func (a *analyzer) start(c rune) {
 		a.curState = aDashState
 	case ',':
 		a.curState = aCommaState
+	case '*':
+		a.curState = aStarState
+	case '[':
+		a.curState = aBookState
+	case ']':
+		a.curState = aBookState
 	default:
 		if unicode.IsDigit(c) {
 			a.curState = aNumberState
