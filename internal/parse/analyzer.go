@@ -20,19 +20,22 @@ const (
 	aBookState      analyzerState = 6
 	aUndefinedState analyzerState = 7
 	aStarState      analyzerState = 8
-	aEOFState       analyzerState = 9
 )
 
+// analyzer handles analysis of characters in an input string. It groups them into
+// lexical token (parse.token) objects and passes them into outputChan. It constantly
+// checks for errors from the stopChan, and stops processing if it gets one.
 type analyzer struct {
 	value       string
 	curState    analyzerState
 	toParse     []string
 	parseString string
 	pos         int
-	outputChan  chan token
-	stopChan    chan error
+	outputChan  chan token // puts into this channel
+	stopChan    chan error // takes out of this channel
 }
 
+// newAnalyzer creates a new analyzer object
 func newAnalyzer(parseStrs []string, c chan token, errChan chan error) *analyzer {
 	return &analyzer{
 		toParse:    parseStrs,
@@ -65,7 +68,7 @@ func (a *analyzer) analyze() error {
 			return err
 		}
 	}
-	a.makeToken(aEOFState)
+	a.makeToken(aSemicolonState)
 	close(a.outputChan)
 	log.WithFields(logrus.Fields{"where": "analyze", "status": "success"}).Info("Finished Analyzing (outputChan closed)")
 	return <-a.stopChan
@@ -81,6 +84,7 @@ func (a *analyzer) analyzeOne(curString string) error {
 		// stop analysis if we get a stop signal form the parser
 		select {
 		case err := <-a.stopChan:
+			log.WithFields(logrus.Fields{"where": "analyze", "status": fmt.Sprintf("%v", err)}).Info("Terminating analysis (error form parser)")
 			return err
 		default:
 			a.pos++
@@ -150,7 +154,6 @@ func (a *analyzer) star(c rune) {
 }
 
 func (a *analyzer) number(c rune) {
-	fmt.Print(string(c))
 	if unicode.IsDigit(c) {
 		a.value += string(c)
 		return

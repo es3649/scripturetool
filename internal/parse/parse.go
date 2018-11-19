@@ -89,6 +89,7 @@ func Parse(args []string) (err error) {
 	go func() {
 		err = a.analyze()
 		w.Done()
+		fmt.Print("finshed analysis")
 	}()
 
 	// parse in another thread
@@ -97,6 +98,7 @@ func Parse(args []string) (err error) {
 		// TODO get results from here
 		p.parseOrder()
 		w.Done()
+		fmt.Print("finshed parseOrder")
 	}()
 
 	w.Wait()
