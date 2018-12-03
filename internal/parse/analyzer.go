@@ -32,15 +32,13 @@ type analyzer struct {
 	parseString string
 	pos         int
 	outputChan  chan token // puts into this channel
-	stopChan    chan error // takes out of this channel
 }
 
 // newAnalyzer creates a new analyzer object
-func newAnalyzer(parseStrs []string, c chan token, errChan chan error) *analyzer {
+func newAnalyzer(parseStrs []string, c chan token) *analyzer {
 	return &analyzer{
 		toParse:    parseStrs,
 		outputChan: c,
-		stopChan:   errChan,
 	}
 }
 
@@ -54,7 +52,7 @@ func (a *analyzer) makeToken(tokType analyzerState) {
 	a.value = ""
 }
 
-func (a *analyzer) analyze() error {
+func (a *analyzer) analyze() (err error) {
 	for _, curString := range a.toParse {
 		// no length 0 strings!
 		if curString == "" {
@@ -62,16 +60,20 @@ func (a *analyzer) analyze() error {
 			continue
 		}
 		log.WithFields(logrus.Fields{"where": "analyze", "arg": curString}).Info("Analyzing argument")
-		if err := a.analyzeOne(curString); err != nil {
+		if err = a.analyzeOne(curString); err != nil {
 			log.WithFields(logrus.Fields{"where": "analyze", "status": "error"}).Info("Finished Analyzing (outputChan closed)")
 			close(a.outputChan)
+			fmt.Print("analyze-returning\n")
 			return err
 		}
 	}
+	// fmt.Print("finishing all analysis\n")
 	a.makeToken(aSemicolonState)
+	// fmt.Print("made final token\n")
 	close(a.outputChan)
+	fmt.Print("closing channel\n")
 	log.WithFields(logrus.Fields{"where": "analyze", "status": "success"}).Info("Finished Analyzing (outputChan closed)")
-	return <-a.stopChan
+	return nil
 }
 
 func (a *analyzer) analyzeOne(curString string) error {
@@ -81,36 +83,29 @@ func (a *analyzer) analyzeOne(curString string) error {
 	a.pos = -1 // -1 because the first thing we do is increment it
 	// analyze each character in the string
 	for {
-		// stop analysis if we get a stop signal form the parser
-		select {
-		case err := <-a.stopChan:
-			log.WithFields(logrus.Fields{"where": "analyze", "status": fmt.Sprintf("%v", err)}).Info("Terminating analysis (error form parser)")
-			return err
-		default:
-			a.pos++
-			if a.pos >= len(curString) {
-				return a.finish()
-			}
-			c := rune(a.parseString[a.pos])
-			log.WithFields(logrus.Fields{"where": "analyze", "character": string(c), "state": a.curState}).Debug("Parsed character")
-			switch a.curState {
-			case aStartState:
-				a.start(c)
-			case aSemicolonState:
-				a.semicolon(c)
-			case aColonState:
-				a.colon(c)
-			case aCommaState:
-				a.comma(c)
-			case aDashState:
-				a.dash(c)
-			case aStarState:
-				a.star(c)
-			case aNumberState:
-				a.number(c)
-			case aBookState:
-				a.book(c)
-			}
+		a.pos++
+		if a.pos >= len(curString) {
+			return a.finish()
+		}
+		c := rune(a.parseString[a.pos])
+		log.WithFields(logrus.Fields{"where": "analyze", "character": string(c), "state": a.curState}).Debug("Parsed character")
+		switch a.curState {
+		case aStartState:
+			a.start(c)
+		case aSemicolonState:
+			a.semicolon(c)
+		case aColonState:
+			a.colon(c)
+		case aCommaState:
+			a.comma(c)
+		case aDashState:
+			a.dash(c)
+		case aStarState:
+			a.star(c)
+		case aNumberState:
+			a.number(c)
+		case aBookState:
+			a.book(c)
 		}
 	}
 }
@@ -119,11 +114,14 @@ func (a *analyzer) finish() error {
 	switch a.curState {
 	case aNumberState:
 		a.makeToken(aNumberState)
+		// fmt.Print("finish analysis-number state\n")
 		return nil
 	case aBookState:
+		// fmt.Print("finish analysis-book state\n")
 		a.makeToken(aBookState)
 		return nil
 	default:
+		// fmt.Print("finish analysis-bad state\n")
 		return fmt.Errorf("Invalid end of string: %s", a.value)
 	}
 }

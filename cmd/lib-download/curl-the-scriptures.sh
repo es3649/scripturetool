@@ -1,24 +1,25 @@
 #!/bin/bash
-lang=eng
+lang="eng"
 
 # for each testament...
 for tome in ot nt bofm dc-testament pgp ; do
 	# if we haven't downloaded the list of books
 	if [[ ! -e lib/$tome.html ]] ; then
 		# download them
-		link=https://www.lds.org/scriptures/$tome?lang=$lang
+		link="https://www.lds.org/scriptures/$tome?lang=$lang"
 		echo "downloading $link"
 		curl -s $link > lib/$tome.html
 	fi
 	# for each book the page lists
 	for book in $(grep -oP "href=\"https://www.lds.org/scriptures/$tome/[-/a-z0-9]+?\?lang=$lang\"" lib/$tome.html) ; do
+		echo $book
 		# cut the name of the book out
 		book=$(echo $book | cut -d'/' -f6- | cut -d'?' -f1)
 		# curl the book
 		if [[ ! -e lib/$book ]]
 		then
 			mkdir -p lib/$book
-			link=https://www.lds.org/scriptures/$tome/$book?lang=$lang
+			link="https://www.lds.org/scriptures/$tome/$book?lang=$lang"
 			echo "downloading $book: $link"
 			curl -s $link > lib/$book.html
 		fi
@@ -34,7 +35,7 @@ for tome in ot nt bofm dc-testament pgp ; do
 				then
 					# make a directory for the chapter and curl the chapter
 					mkdir -p lib/$book/$chapnum
-					link=https://www.lds.org/scriptures/$tome/$book/$chapnum?lang=$lang
+					link="https://www.lds.org/scriptures/$tome/$book/$chapnum?lang=$lang"
 					echo "downloading chapter $chapnum: $link"
 					curl -s $link > lib/$book/$chapnum.html
 				fi

@@ -1,6 +1,10 @@
 package parse
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/sirupsen/logrus"
+)
 
 type parserState int
 
@@ -29,27 +33,25 @@ const (
 type parser struct {
 	curState parserState
 	inChan   chan token
-	errChan  chan error
 	results  []Lookuper
 	curBook  string
 	curChap  []int
 }
 
-func newParser(refs []Lookuper, c chan token, e chan error) *parser {
+func newParser(refs []Lookuper, c chan token) *parser {
 	return &parser{
 		inChan:  c,
-		errChan: e,
 		results: refs,
 	}
 }
 
 // parseOrder ensures that the tokens are received in the correct order
-func (p *parser) parseOrder() {
+func (p *parser) parseOrder() error {
 
 	// for each token we get
 	for tok := range p.inChan {
-		fmt.Printf("%v\n", tok)
-		fmt.Printf("parser state: %d\n", p.curState)
+		// fmt.Printf("%v\n", tok)
+		// fmt.Printf("parser state: %d\n", p.curState)
 		switch p.curState {
 
 		case pStartState:
@@ -60,9 +62,7 @@ func (p *parser) parseOrder() {
 			case aBookState:
 				p.curState = pBookName
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pBookNameNum:
@@ -71,9 +71,7 @@ func (p *parser) parseOrder() {
 			case aDashState:
 				p.curState = pBookNameDash
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pBookNameDash:
@@ -81,12 +79,8 @@ func (p *parser) parseOrder() {
 			switch tok.Type {
 			case aBookState:
 				p.curState = pBookName
-				close(p.errChan)
-				return
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pBookName:
@@ -98,9 +92,7 @@ func (p *parser) parseOrder() {
 			case aSemicolonState:
 				p.curState = pStartState
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pChapNum:
@@ -118,9 +110,7 @@ func (p *parser) parseOrder() {
 			case aSemicolonState:
 				p.curState = pStartState
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pChapRangeDash:
@@ -128,9 +118,7 @@ func (p *parser) parseOrder() {
 			case aNumberState:
 				p.curState = pChapRangeNum
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pChapRangeNum:
@@ -142,9 +130,7 @@ func (p *parser) parseOrder() {
 			case aCommaState:
 				p.curState = pChapComma
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pChapComma:
@@ -152,9 +138,7 @@ func (p *parser) parseOrder() {
 			case aNumberState:
 				p.curState = pChapListNum
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pChapListNum:
@@ -166,9 +150,7 @@ func (p *parser) parseOrder() {
 			case aSemicolonState:
 				p.curState = pStartState
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pChapListDash:
@@ -176,9 +158,7 @@ func (p *parser) parseOrder() {
 			case aNumberState:
 				p.curState = pChapListRangeNum
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pChapListRangeNum:
@@ -188,9 +168,7 @@ func (p *parser) parseOrder() {
 			case aSemicolonState:
 				p.curState = pStartState
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pColon:
@@ -198,9 +176,7 @@ func (p *parser) parseOrder() {
 			case aNumberState:
 				p.curState = pVerseNum
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pVerseNum:
@@ -212,9 +188,7 @@ func (p *parser) parseOrder() {
 			case aSemicolonState:
 				p.curState = pStartState
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pVerseRangeDash:
@@ -222,9 +196,7 @@ func (p *parser) parseOrder() {
 			case aNumberState:
 				p.curState = pVerseRangeNum
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pVerseRangeNum:
@@ -234,9 +206,7 @@ func (p *parser) parseOrder() {
 			case aSemicolonState:
 				p.curState = pStartState
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
 		case pVerseComma:
@@ -244,18 +214,14 @@ func (p *parser) parseOrder() {
 			case aNumberState:
 				p.curState = pVerseNum
 			default:
-				p.errChan <- fmt.Errorf("Invalid token received: %#v", tok)
-				close(p.errChan)
-				return
+				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 		}
 	}
-	log.WithField("where", "parseOrder").Info("Finished Parsing (errChan closed)")
+	log.WithFields(logrus.Fields{"where": "parseOrder", "status": "success"}).Info("Finished Parsing (errChan closed)")
 	if p.curState != pStartState {
-		p.errChan <- fmt.Errorf("End of line while parsing reference")
-		close(p.errChan)
-		return
+		return fmt.Errorf("End of line while parsing reference")
 	}
-	p.errChan <- nil
-	close(p.errChan)
+
+	return nil
 }

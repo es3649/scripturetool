@@ -76,32 +76,41 @@ func Parse(args []string) (err error) {
 
 	fmt.Print(args, "\n")
 
-	analysisResultsChan := make(chan token)
-	errChan := make(chan error)
+	analysisResultsChan := make(chan token, 50)
 
-	a := newAnalyzer(args, analysisResultsChan, errChan)
-	p := newParser(refs, analysisResultsChan, errChan)
+	a := newAnalyzer(args, analysisResultsChan)
+	p := newParser(refs, analysisResultsChan)
 
 	var w sync.WaitGroup
+
+	var aErr, pErr error
 
 	// run analysis in a thread
 	w.Add(1)
 	go func() {
-		err = a.analyze()
+		aErr = a.analyze()
 		w.Done()
-		fmt.Print("finshed analysis")
+		fmt.Print("finshed analysis\n")
+		return
 	}()
 
 	// parse in another thread
 	w.Add(1)
 	go func() {
 		// TODO get results from here
-		p.parseOrder()
+		pErr = p.parseOrder()
 		w.Done()
-		fmt.Print("finshed parseOrder")
+		fmt.Print("finshed parseOrder\n")
+		return
 	}()
 
 	w.Wait()
 
-	return err
+	if aErr != nil {
+		return aErr
+	} else if pErr != nil {
+		return pErr
+	}
+
+	return nil
 }
