@@ -25,19 +25,18 @@ build:
 # copy the lib files to /etc
 # have to run with sudo
 .PHONY: install
-install:
-	if [ ! -e lib/ ]; do
-		make lib
-	done
-
-	mkdir /etc/scripturetool
-	cp -r lib /etc/scripturetool
-	cp scripturetool /etc/scripturetool
-	ln -s -t /usr/local/bin /etc/scripturetool/scripturetool
+install: build
+	./cmd/lib-download/lib-download.sh
+	
+# move the library and the executable to /etc/scripturetool
+# mkdir /etc/scripturetool
+# cp -r lib /etc/scripturetool/
+# cp scripturetool /etc/scripturetool/
+# ln -s -t /usr/local/bin /etc/scripturetool/scripturetool
 
 # uninstall 
 .PHONY: uninstall
 uninstall:
 	# delete the libraries and the symlink to the executable
-	rm -rf /etc/scripturetool
-	rm /usr/local/bin/scripturetool
+	# rm -rf /etc/scripturetool
+	# rm /usr/local/bin/scripturetool
