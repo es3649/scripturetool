@@ -19,28 +19,28 @@ reference verses within quotes, one reference per string
 a reference should be formatted in any of the following methods
   (or some combination of them):
 Reference:
-  "Book chap:vs"  or 
-  "Book chap:vs;chap:vs" (prints both references in the book
+  "Book chap:vs"         or 
   "Book chap"            (prints whole chapter) or
   "Book chap-range"      (doesn't accept verse listing)
 Book Name:
   "1 Corinthians"        (by name)
   "1-cor"                (abbreviated: see below)
-  "{Matt,Mark,Luke}"     (listed: abbreviated or not)
+  "{Matt,Mark,Luke}"     (listed: abbreviated or not)--Not yet implemented
   "[OT]"                 (by class)
 Chapter Number:
   "2"                    (number)
   "3-5"                  (range: don't list verses after)
-  "{20,84,100}"          (listed)
-  "*"                    (all chapters, same as not listing verse)
+  "20,84,100"            (listed)
+  "*"                    (all chapters, same as not listing verse)--Not yet implemented
 Verse Numbers:
   "2"                    (number)
   "3-5"                  (range)
-  "77,79" or "{77,79}" (listed)
+  "77,79"                (listed)
   Using * as a chapter will indicate all chapters in the book: John *:12 will indicate
     the 12th verse of every chapter of John (having at least 12 verses)
   Using * as a verse is equivalent to listing the chapter number alone: John 17:* is
     equivalent to John 17
+
 All Scripture (non-verse content excluded)  *  
 OLD TESTAMENT   [OT]    NEW TESTAMENT   [NT]   
 Genesis         gen     Matthew         matt   
@@ -91,7 +91,8 @@ JS-Matthew      js-m
 JS-History      js-h    DOCTRINE AND    [DC]   
 Articles        a-of-f    COVENANTS            
   of Faith              Sections        dc     
-NON-VERSE CONTENT:
+
+NON-VERSE CONTENT:--Not Yet Impelemented
                   BIBLE                        
 Epistle Dedicatory                      dedication
               BOOK OF MORMON                   

@@ -4,29 +4,9 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
-
-type token struct {
-	Type  analyzerState
-	Value string
-}
-
-// Reference stores a scripture reference. It needs to be interfaced
-// with a lookup option, and we need types containing just chapters,
-// and ones with verses, and maybe ones with ranges of chapters and
-// or verses
-type Reference struct {
-	Book    string
-	Chapter int
-	Verse   int
-}
-
-// Lookuper interfaces references accepting chapter selections, or
-// verse selections within a chapter. Lookup methods ought also to
-// lookup with respect to command line args
-type Lookuper interface {
-	Lookup() error
-}
 
 var refs []Lookuper
 
@@ -72,9 +52,10 @@ func Parse(args []string) (err error) {
 		if err != nil {
 			return err
 		}
+		args[i] = PutAbbrevs(args[i])
 	}
 
-	fmt.Print(args, "\n")
+	log.WithFields(logrus.Fields{"where": "parse", "args": fmt.Sprintf("%v", args)}).Info("Parsing these arguments")
 
 	analysisResultsChan := make(chan token, 50)
 
@@ -90,7 +71,6 @@ func Parse(args []string) (err error) {
 	go func() {
 		aErr = a.analyze()
 		w.Done()
-		fmt.Print("finshed analysis\n")
 		return
 	}()
 
@@ -100,7 +80,6 @@ func Parse(args []string) (err error) {
 		// TODO get results from here
 		pErr = p.parseOrder()
 		w.Done()
-		fmt.Print("finshed parseOrder\n")
 		return
 	}()
 
@@ -110,6 +89,14 @@ func Parse(args []string) (err error) {
 		return aErr
 	} else if pErr != nil {
 		return pErr
+	}
+
+	// lookup all the references we got from the parser
+	for _, reference := range p.Results {
+		if err := reference.Lookup(Flags); err != nil {
+			fmt.Printf("Error looking up the given reference: %#v\n", reference)
+			fmt.Printf("  Error is: %v\n", err)
+		}
 	}
 
 	return nil

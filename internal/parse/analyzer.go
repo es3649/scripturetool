@@ -22,6 +22,11 @@ const (
 	aStarState      analyzerState = 8
 )
 
+type token struct {
+	Type  analyzerState
+	Value string
+}
+
 // analyzer handles analysis of characters in an input string. It groups them into
 // lexical token (parse.token) objects and passes them into outputChan. It constantly
 // checks for errors from the stopChan, and stops processing if it gets one.
@@ -71,7 +76,6 @@ func (a *analyzer) analyze() (err error) {
 	a.makeToken(aSemicolonState)
 	// fmt.Print("made final token\n")
 	close(a.outputChan)
-	fmt.Print("closing channel\n")
 	log.WithFields(logrus.Fields{"where": "analyze", "status": "success"}).Info("Finished Analyzing (outputChan closed)")
 	return nil
 }

@@ -28,25 +28,29 @@ const (
 )
 
 // parser takes tokens from an analyzer. It takes tokens from inChan
-// (passed from the analyzer) and retruns an error (or nil) to the
-// analyzer to terminate it if needed via errChan.
+// (passed from the analyzer) and returns an error (or nil)
 type parser struct {
 	curState parserState
 	inChan   chan token
-	results  []Lookuper
+	Results  []Lookuper
+	curChRef ReferenceChapters
+	curVsRef ReferenceVerses
 	curBook  string
-	curChap  []int
+	curChap  string
+	curVerse string
 }
 
 func newParser(refs []Lookuper, c chan token) *parser {
 	return &parser{
 		inChan:  c,
-		results: refs,
+		Results: refs,
 	}
 }
 
 // parseOrder ensures that the tokens are received in the correct order
 func (p *parser) parseOrder() error {
+	p.curVerse = ""
+	p.curState = pStartState
 
 	// for each token we get
 	for tok := range p.inChan {
@@ -59,8 +63,10 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aNumberState:
 				p.curState = pBookNameNum
+				p.curBook = tok.Value
 			case aBookState:
 				p.curState = pBookName
+				p.curBook = tok.Value
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -70,6 +76,7 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aDashState:
 				p.curState = pBookNameDash
+				p.curBook = p.curBook + tok.Value
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -79,6 +86,7 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aBookState:
 				p.curState = pBookName
+				p.curBook = p.curBook + tok.Value
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -89,8 +97,9 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aNumberState:
 				p.curState = pChapNum
-			case aSemicolonState:
-				p.curState = pStartState
+				p.curChap = tok.Value
+			// case aSemicolonState:
+			// 	p.curState = pStartState
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -103,12 +112,37 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aColonState:
 				p.curState = pColon
+				// create a ReferenceVerses object
+				p.curVsRef = ReferenceVerses{
+					Book:    p.curBook,
+					Chapter: p.curChap,
+				}
+
 			case aDashState:
 				p.curState = pChapRangeDash
+				// get this chapter
+				// we'll get the end chapter when we finish
+				p.curChRef = ReferenceChapters{
+					Book:    p.curBook,
+					Chapter: append(make([]string, 0), p.curChap),
+				}
+
 			case aCommaState:
 				p.curState = pChapComma
+				// log this chapter, then we'll get the rest of them later
+				p.curChRef = ReferenceChapters{
+					Book:    p.curBook,
+					Chapter: append(make([]string, 0), p.curChap),
+				}
+
 			case aSemicolonState:
 				p.curState = pStartState
+				// we're finished
+				p.Results = append(p.Results, &ReferenceChapters{
+					Book:    p.curBook,
+					Chapter: append(make([]string, 0), p.curChap),
+				})
+
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -117,6 +151,11 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aNumberState:
 				p.curState = pChapRangeNum
+				chaps, err := makeRange(p.curChap, tok.Value)
+				if err != nil {
+					return err
+				}
+				p.curChRef.Chapter = append(p.curChRef.Chapter, chaps...)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -125,8 +164,6 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aSemicolonState:
 				p.curState = pStartState
-			case aColonState:
-				p.curState = pColon
 			case aCommaState:
 				p.curState = pChapComma
 			default:
@@ -137,6 +174,8 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aNumberState:
 				p.curState = pChapListNum
+				p.curChap = tok.Value
+				p.curChRef.Chapter = append(p.curChRef.Chapter, tok.Value)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -157,6 +196,11 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aNumberState:
 				p.curState = pChapListRangeNum
+				chaps, err := makeRange(p.curChap, tok.Value)
+				if err != nil {
+					return err
+				}
+				p.curChRef.Chapter = append(p.curChRef.Chapter, chaps...)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -175,10 +219,19 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aNumberState:
 				p.curState = pVerseNum
+				p.curVerse = tok.Value
+				p.curVsRef = ReferenceVerses{
+					Book:    p.curBook,
+					Chapter: p.curChap,
+					Verse:   append(make([]string, 0), p.curVerse),
+				}
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
+			/////////////
+			// TODO all this below: the verse numbers don't get saved into Lookupers yet
+			/////////////
 		case pVerseNum:
 			switch tok.Type {
 			case aDashState:
@@ -195,6 +248,12 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aNumberState:
 				p.curState = pVerseRangeNum
+				// # we got a range
+				verses, err := makeRange(p.curVerse, tok.Value)
+				if err != nil {
+					return err
+				}
+				p.curVsRef.Verse = append(p.curVsRef.Verse, verses...)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -213,14 +272,26 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aNumberState:
 				p.curState = pVerseNum
+				p.curVerse = tok.Value
+				p.curVsRef.Verse = append(p.curVsRef.Verse, p.curVerse)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 		}
 	}
-	log.WithFields(logrus.Fields{"where": "parseOrder", "status": "success"}).Info("Finished Parsing (errChan closed)")
+	log.WithFields(logrus.Fields{"where": "parseOrder", "status": "success"}).Info("Finished Parsing")
 	if p.curState != pStartState {
 		return fmt.Errorf("End of line while parsing reference")
+	}
+
+	// p.curVerse should be empty if we parsed a chapter reference
+	if p.curVerse == "" {
+		p.Results = append(p.Results, &p.curChRef)
+		log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curChRef)}).Info("Logged a Chapter")
+	} else {
+		p.Results = append(p.Results, &p.curVsRef)
+		log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curVsRef)}).Info("Logged a Verse")
+		p.curVerse = ""
 	}
 
 	return nil

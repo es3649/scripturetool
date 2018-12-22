@@ -41,6 +41,11 @@ for book in $(ls -d lib/*/) ; do
 		echo "    \"verses\":" >> $book$chapnum.json
 		echo "    {" >> $book$chapnum.json
 
+		# get some verse metrics for comma s"pacing
+		VS_COUNT=$(echo $VERSES | tr " " "\n" | wc -l)
+		VS_Counter=0
+		# echo "Parsing through $VS_COUNT verse(s)"
+
 		# for each verse:
 		for verse in $VERSES ; do
 			# clean out the transcript
@@ -64,7 +69,7 @@ for book in $(ls -d lib/*/) ; do
 					}
 				} 
 				END {print res}' | tr "\n" " ")
-			echo $positions
+			# echo $positions
 
 			# clean out the refs and put spaces back before we print the text to the file
 			text=$(echo $text | perl -pe 's/~/ /g; s/{.}//g')
@@ -81,7 +86,7 @@ for book in $(ls -d lib/*/) ; do
 
 			# download them all
 			# no worry about indicies for zero cases. Zero cases are handled, because this loop doesn't run if there are no refs in $REF_LIST
-			echo "Downloading references for $bookname $chapnum:$versenum"
+			# echo "Downloading references for $bookname $chapnum:$versenum"
 			pos=2
 			for ref in $REF_LIST ; do
 
@@ -112,7 +117,14 @@ for book in $(ls -d lib/*/) ; do
 
 
 			echo "            ]" >> $book$chapnum.json
-			echo "        }," >> $book$chapnum.json # do something about this comma. It doesn't always go in
+
+			# update the counter, then insert the corresponding item ending.
+			let VS_Counter++
+			if [[ "$VS_Counter" == "$VS_COUNT" ]]; then
+				echo "        }" >> $book$chapnum.json
+			else
+				echo "        }," >> $book$chapnum.json
+			fi
 		done
 
 		# put the end of the json in place

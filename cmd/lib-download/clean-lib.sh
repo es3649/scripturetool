@@ -1,5 +1,6 @@
 #!/bin/bash
 
-rm -r *.html
-rm -r */*.html
-rm -r */*/*.html
+rm -r lib/*.html
+rm -r lib/*.json
+rm -r lib/*/*.html
+rm -r lib/*/*.json

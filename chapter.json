@@ -1,0 +1,37 @@
+{
+    "book":"moro",
+    "chapter":5,
+    "heading":"The mode of administering the sacramental wine is set forth. About A.D. 401–21.",
+    "verses":{
+        "1":{
+            "text":"The manner of administering the wine—Behold, they took the cup, and said:",
+            "footnotes":[
+                {
+                "position":"4",
+                "reference":"3 Ne. 18:11 (8–11); D&amp;C 20:78"
+                }
+            ]
+        },
+        "2":{
+            "text":"O God, the Eternal Father, we ask thee, in the name of thy Son, Jesus Christ, to bless and sanctify this wine to the souls of all those who drink of it, that they may do it in remembrance of the blood of thy Son, which was shed for them; that they may witness unto thee, O God, the Eternal Father, that they do always remember him, that they may have his Spirit to be with them. Amen.",
+            "footnotes":[
+                {
+                    "position":105,
+                    "reference":"TG Sacrament"
+                },
+                {
+                    "position":176,
+                    "reference":"Luke 22:20; 1 Cor. 11:25"
+                },
+                {
+                    "position":195,
+                    "reference":"D&amp;C 27:2 (2–4)"
+                },
+                {
+                    "position":355,
+                    "reference":"TG Spirituality"
+                }
+            ]
+        }
+    }
+}

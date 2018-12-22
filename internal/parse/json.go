@@ -15,7 +15,7 @@ import (
 // Chapter stores a chapter or scripture
 type Chapter struct {
 	Book    string
-	Chapter int
+	Chapter string
 	Heading string
 	Verses  map[string]Verse
 }
@@ -32,9 +32,9 @@ type Footnote struct {
 	Reference string
 }
 
-// PutFootnotes returns the Text field of the verse, but inserts a footnote
+// putFootnotes returns the Text field of the verse, but inserts a footnote
 // identifier at each position indicated in the []Footnotes
-func (v *Verse) PutFootnotes() string {
+func (v Verse) putFootnotes() string {
 	var verseSlices []string
 	var old = 0
 	for i, footnote := range v.Footnotes {
@@ -45,6 +45,24 @@ func (v *Verse) PutFootnotes() string {
 	// add the slice from the position of the last footnote to the end of the verse
 	verseSlices = append(verseSlices, v.Text[v.Footnotes[len(v.Footnotes)-1].Position:])
 	return strings.Join(verseSlices, "")
+}
+
+// formatFootnotes returns formatted footnotes with their letter identifiers
+func (v Verse) formatFootnotes() string {
+	var footnotes string
+	for _, note := range v.Footnotes {
+		footnotes = footnotes + fmt.Sprintf("%s   ", note.Reference)
+	}
+	return footnotes
+}
+
+func buildChapterRef(book, chapter string) string {
+	// lib location should be in the same working directory as the executable
+	path := "./lib/"
+	path = path + book + "/" + chapter + ".json.tar.gz"
+
+	log.WithFields(logrus.Fields{"where": "buildChapterRef", "path": path}).Debug("Built a path to the chapter resource")
+	return path
 }
 
 // ReadChapter opens a filepath, unzips and reads the json, and returns the chapter
@@ -87,11 +105,11 @@ func ReadChapter(path string) (*Chapter, error) {
 	log.WithFields(logrus.Fields{"where": "ReadChapter", "data": string(data)}).Debug("Read these data")
 
 	// unmarshal the data into a new chapter struct
-	var ch *Chapter
+	var ch Chapter
 	err = json.Unmarshal(data, &ch)
 	if err != nil {
 		return nil, fmt.Errorf("ReadChapter--failed to unmarshal json:\n%v", err)
 	}
 
-	return ch, nil
+	return &ch, nil
 }

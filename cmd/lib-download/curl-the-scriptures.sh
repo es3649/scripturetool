@@ -27,14 +27,13 @@ for tome in ot nt bofm dc-testament pgp ; do
 		if [[ ! $(echo $book | grep /1 ) ]]
 		then
 			#download them all
-			for chapter in $(grep -oP "https://www.lds.org/scriptures/$tome/$book/[0-9]+?\?lang=eng" lib/$book.html)
+			for chapter in $(grep -oP "https://www.lds.org/scriptures/$tome/$book/[0-9]+?\?lang=eng" lib/$book.html | sort -u) ## bug
 			do
 				# cut out the chapter number
 				chapnum=$(echo $chapter | cut -d'/' -f7 | cut -d'?' -f1)
 				if [[ ! -d lib/$book/$chapnum ]]
 				then
 					# make a directory for the chapter and curl the chapter
-					mkdir -p lib/$book/$chapnum
 					link="https://www.lds.org/scriptures/$tome/$book/$chapnum?lang=$lang"
 					echo "downloading chapter $chapnum: $link"
 					curl -s $link > lib/$book/$chapnum.html

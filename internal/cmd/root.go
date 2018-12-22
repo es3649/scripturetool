@@ -12,22 +12,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var flags = struct {
-	Verbosity    int
-	Context      int
-	Footnotes    bool
-	JST          bool
-	Link         bool
-	Headings     bool
-	HeadingsOnly bool
-	Refs         bool
-	Paragraphs   bool
-}{}
-
 // Execute runs the command
 func Execute() error {
 	return rootCmd.Execute()
 }
+
+var verbosity int
 
 var rootCmd = &cobra.Command{
 	Use:   "scripturetool",
@@ -40,7 +30,7 @@ Use 'scripturetool help' for explanation of arguments and abbreviations`,
 	Args: cobra.MinimumNArgs(1),
 	PreRun: func(_ *cobra.Command, _ []string) {
 		// set the verbosity of the logger(s)
-		parse.SetVerbosity(flags.Verbosity)
+		parse.SetVerbosity(verbosity)
 	},
 	Run: run,
 }
@@ -50,38 +40,24 @@ func init() {
 	rootCmd.AddCommand(helpCmd)
 
 	// add flags
-	rootCmd.Flags().IntVarP(&flags.Verbosity, "verbose", "v", 0, "varying levels of verbosity")
-	rootCmd.Flags().IntVarP(&flags.Context, "context", "c", 0, "show verses before and after the selected verse(s)")
-	rootCmd.Flags().BoolVarP(&flags.Footnotes, "footnotes", "f", false, "display footnotes")
-	rootCmd.Flags().BoolVarP(&flags.JST, "jst", "j", false, "show only JST footnotes")
-	rootCmd.Flags().BoolVarP(&flags.Link, "link", "l", false, "show the verses referenced in footnotes of selected verse(s)")
-	rootCmd.Flags().BoolVarP(&flags.Headings, "headings", "H", false, "Show headings for selected chapter(s)")
-	rootCmd.Flags().BoolVar(&flags.HeadingsOnly, "headings-only", false, "Show only the headings for selected chapter(s)")
-	rootCmd.Flags().BoolVarP(&flags.Refs, "refs", "r", true, "show full refereces with each verse displayed")
-	rootCmd.Flags().BoolVarP(&flags.Paragraphs, "pars", "p", false, "print text in paragraphs")
+	rootCmd.Flags().IntVarP(&verbosity, "verbose", "v", 0, "varying levels of verbosity")
+	rootCmd.Flags().IntVarP(&parse.Flags.Context, "context", "c", 0, "show verses before and after the selected verse(s)")
+	rootCmd.Flags().BoolVarP(&parse.Flags.Footnotes, "footnotes", "f", false, "display footnotes")
+	rootCmd.Flags().BoolVarP(&parse.Flags.JST, "jst", "j", false, "show only JST footnotes")
+	rootCmd.Flags().BoolVarP(&parse.Flags.Link, "link", "l", false, "show the verses referenced in footnotes of selected verse(s)")
+	rootCmd.Flags().BoolVarP(&parse.Flags.Headings, "headings", "H", false, "Show headings for selected chapter(s)")
+	rootCmd.Flags().BoolVar(&parse.Flags.HeadingsOnly, "headings-only", false, "Show only the headings for selected chapter(s)")
+	rootCmd.Flags().BoolVarP(&parse.Flags.Refs, "refs", "r", false, "show full refereces with each verse displayed")
+	rootCmd.Flags().BoolVarP(&parse.Flags.Paragraphs, "pars", "p", false, "print text in paragraphs")
 }
 
 // run parses the references from the arguments and sends them for retreival and display
 func run(cmd *cobra.Command, args []string) {
-
+	// invert the refs flag
+	parse.Flags.Refs = !parse.Flags.Refs
 	err := parse.Parse(args)
 
 	if err != nil {
 		fmt.Printf("Got error `%v'\n", err)
 	}
-	// 	ch, err := parse.ReadChapter("lib/moro/5.json.tar.gz")
-	// 	if ch == nil {
-	// 		ch = &parse.Chapter{}
-	// 	}
-
-	// 	fmt.Printf(`Chapter:
-	// %v
-
-	// Error: %v
-	// 		`, *ch, err)
-
-	// 	for i, verse := range ch.Verses {
-	// 		v := verse.PutFootnotes()
-	// 		fmt.Printf("Verse %s: %s\n\n", i, v)
-	// 	}
 }
