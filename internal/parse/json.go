@@ -37,6 +37,11 @@ type Footnote struct {
 func (v Verse) putFootnotes() string {
 	var verseSlices []string
 	var old = 0
+	// if there are no footnotes, just return
+	if len(v.Footnotes) == 0 {
+		return v.Text
+	}
+
 	for i, footnote := range v.Footnotes {
 		// add the slice of the text that goes from the last footnote to the current one
 		verseSlices = append(verseSlices, v.Text[old:footnote.Position], "[", string(i+'a'), "]")
@@ -49,6 +54,9 @@ func (v Verse) putFootnotes() string {
 
 // formatFootnotes returns formatted footnotes with their letter identifiers
 func (v Verse) formatFootnotes() string {
+	if len(v.Footnotes) == 0 {
+		return ""
+	}
 	var footnotes string
 	for _, note := range v.Footnotes {
 		footnotes = footnotes + fmt.Sprintf("%s   ", note.Reference)

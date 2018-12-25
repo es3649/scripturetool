@@ -24,7 +24,7 @@ for book in $(ls -d lib/*/) ; do
 		echo "cleaning $book$chapnum"
 
 		# get the chapter heading and format it
-		heading=$(grep -P '\<p class=\"study-summary\".+?\</p\>' $chapter | perl -pe "s@\<[^>]+\>@@g; s@\t+@@g")
+		heading=$(grep -P '\<p class=\"study-summary\".+?\</p\>' $chapter | perl -pe "s@\<[^>]+\>@@g; s@\t+@@g" | tr "\n" "\\n") # This last pipe might not actually work...
 
 		# add it to the raw text files
 		# echo $heading >> $book$chapnum.text

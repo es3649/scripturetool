@@ -39,6 +39,14 @@ func makeRange(lower, upper string) ([]string, error) {
 	u, _ := strconv.ParseInt(upper, 10, 64)
 	up := int(u)
 
+	// bound the numbers to [1,176]
+	if up > 176 {
+		up = 176
+	}
+	if lo < 1 {
+		lo = 1
+	}
+
 	if u <= l {
 		return nil, fmt.Errorf("error in range: %d-%d", l, u)
 	}
