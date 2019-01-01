@@ -42,7 +42,7 @@ Verse Numbers:
     equivalent to John 17
 
 All Scripture (non-verse content excluded)  *  
-OLD TESTAMENT   [OT]    NEW TESTAMENT   [NT]   
+OLD TESTAMENT   [ot]    NEW TESTAMENT   [nt]   
 Genesis         gen     Matthew         matt   
 Exodous         ex      Mark            mark   
 Leviticus       lev     Luke            luke   
@@ -71,7 +71,7 @@ Lamentations    lam     3 John          3-jn
 Ezekiel         ezek    Jude            jude   
 Daniel          dan     Revelation      rev    
 Hosea           hosea                          
-Joel            joel    BOOK OF MORMON  [BOM]  
+Joel            joel    BOOK OF MORMON  [bom]  
 Amos            amos    1 Nephi         1-ne   
 Obadiah         obad    2 Nephi         2-ne   
 Jonah           jonah   Jacob           jacob  
@@ -83,12 +83,12 @@ Haggai          hag     Mosiah          mosiah
 Zechariah       zech    Alma            alma   
 Malachi         mal     Helaman         hel    
                         3 Nephi         3-ne   
-PEARL OF        [PGP]   4 Nephi         4-ne   
+PEARL OF        [pgp]   4 Nephi         4-ne   
   GREAT PRICE           Mormon          morm   
 Moses           moses   Ether           ether  
 Abraham         abr     Moroni          moro   
 JS-Matthew      js-m                           
-JS-History      js-h    DOCTRINE AND    [DC]   
+JS-History      js-h    DOCTRINE AND    [dc]   
 Articles        a-of-f    COVENANTS            
   of Faith              Sections        dc     
 
