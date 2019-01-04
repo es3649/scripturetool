@@ -10,11 +10,13 @@ import (
 type flags struct {
 	Context      int // not yet implemented
 	Footnotes    bool
-	JST          bool // not yet implemented
-	Link         bool // not yet implemented
+	JST          bool   // not yet implemented
+	Language     string // not yet implemented
+	Link         bool   // not yet implemented
 	Headings     bool
 	HeadingsOnly bool
 	Refs         bool
+	RefsFull     bool // not yet implemented
 	Paragraphs   bool // not yet implemented
 }
 
@@ -30,7 +32,7 @@ type Lookuper interface {
 	Lookup(flags) error
 }
 
-// makeRanve takes two numbers (as strings) and creates a range of ints-in-strings
+// makeRange takes two numbers (as strings) and creates a range of ints-in-strings
 // from the lower to the upper (if it's actually lower)
 func makeRange(lower, upper string) ([]string, error) {
 	var list []string
@@ -85,12 +87,22 @@ func (r *ReferenceVerses) Lookup(f flags) error {
 	}
 
 	for _, vs := range r.Verse {
+
+		// if it's empty, then just say an error
 		if chap.Verses[vs].Text == "" {
 			fmt.Printf("Failed: Chapter %s has no verse %s\n", r.Chapter, vs)
 		}
-		if f.Refs {
+
+		// handle the references
+		if f.RefsFull {
+			// RefsFull prints the book and chapter for the
+			fmt.Printf(" [%s %s:%s]", r.Book, r.Chapter, vs)
+		} else if f.Refs {
+			// Refs means print the verse number before the verse
 			fmt.Printf(" %s", vs)
 		}
+
+		// should we put the footnotes in?
 		if f.Footnotes {
 			fmt.Printf(" %s\n", chap.Verses[vs].putFootnotes())
 			fmt.Printf("    %s\n", chap.Verses[vs].formatFootnotes())
@@ -98,9 +110,6 @@ func (r *ReferenceVerses) Lookup(f flags) error {
 			fmt.Printf(" %s\n", chap.Verses[vs].Text)
 		}
 	}
-
-	// print an extra newline for good measure
-	fmt.Print("\n")
 
 	return nil
 }
@@ -142,9 +151,17 @@ func (r *ReferenceChapters) Lookup(f flags) error {
 		// print the text of the chapter
 		for i := 1; i <= len(chap.Verses); i++ {
 			verse := chap.Verses[strconv.Itoa(i)]
-			if f.Refs {
+
+			// handle references
+			if f.RefsFull {
+				// RefsFull prints the book and chapter for the
+				fmt.Printf(" [%s %s:%d]", r.Book, lookupChap, i)
+			} else if f.Refs {
+				// Refs means print the verse numbers
 				fmt.Printf(" %d", i)
 			}
+
+			// should we put the footnotes?
 			if f.Footnotes {
 				fmt.Printf(" %s\n", verse.putFootnotes())
 				fmt.Printf("    %s\n\n", verse.formatFootnotes())

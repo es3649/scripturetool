@@ -51,7 +51,7 @@ Numbers         num     Acts            acts
 Joshua          jos     Romans          rom    
 Judges          judg    1 Corinthians   1-cor  
 Ruth            ruth    2 Corinthians   2-cor  
-1 Samuel        1-sam   Galations       gal    
+1 Samuel        1-sam   Galatians       gal    
 2 Samuel        2-sam   Ephesians       eph    
 1 Kings         1-kin   Philippians     philip 
 2 Kings         2-kin   Colossians      col    
@@ -92,7 +92,7 @@ JS-History      js-h    DOCTRINE AND    [dc]
 Articles        a-of-f    COVENANTS            
   of Faith              Sections        dc     
 
-NON-VERSE CONTENT:--Not Yet Impelemented
+NON-VERSE CONTENT:--Not Yet Implemented
                   BIBLE                        
 Epistle Dedicatory                      dedication
               BOOK OF MORMON                   
@@ -104,6 +104,15 @@ Testimony of the Eight Witnesses        eight
 Testimony of the ProphetJoseph Smith    js
 A Brief Explanation of the BofM         explanation
          DOCTRINE AND COVENANTS                
-Official Declarations                   od`)
+Official Declarations                   od
+
+LANGUAGE OPTIONS
+Libraries must be downloaded for each language,
+and downloading is currently only supported for English
+
+Language    Code
+English     eng
+Spanish     spa
+Portuguese  por`)
 	},
 }
