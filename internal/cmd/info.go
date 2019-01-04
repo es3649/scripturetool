@@ -42,7 +42,7 @@ Verse Numbers:
     equivalent to John 17
 
 All Scripture (non-verse content excluded)  *  
-OLD TESTAMENT   [OT]    NEW TESTAMENT   [NT]   
+OLD TESTAMENT   [ot]    NEW TESTAMENT   [nt]   
 Genesis         gen     Matthew         matt   
 Exodous         ex      Mark            mark   
 Leviticus       lev     Luke            luke   
@@ -51,7 +51,7 @@ Numbers         num     Acts            acts
 Joshua          jos     Romans          rom    
 Judges          judg    1 Corinthians   1-cor  
 Ruth            ruth    2 Corinthians   2-cor  
-1 Samuel        1-sam   Galations       gal    
+1 Samuel        1-sam   Galatians       gal    
 2 Samuel        2-sam   Ephesians       eph    
 1 Kings         1-kin   Philippians     philip 
 2 Kings         2-kin   Colossians      col    
@@ -71,7 +71,7 @@ Lamentations    lam     3 John          3-jn
 Ezekiel         ezek    Jude            jude   
 Daniel          dan     Revelation      rev    
 Hosea           hosea                          
-Joel            joel    BOOK OF MORMON  [BOM]  
+Joel            joel    BOOK OF MORMON  [bom]  
 Amos            amos    1 Nephi         1-ne   
 Obadiah         obad    2 Nephi         2-ne   
 Jonah           jonah   Jacob           jacob  
@@ -83,16 +83,16 @@ Haggai          hag     Mosiah          mosiah
 Zechariah       zech    Alma            alma   
 Malachi         mal     Helaman         hel    
                         3 Nephi         3-ne   
-PEARL OF        [PGP]   4 Nephi         4-ne   
+PEARL OF        [pgp]   4 Nephi         4-ne   
   GREAT PRICE           Mormon          morm   
 Moses           moses   Ether           ether  
 Abraham         abr     Moroni          moro   
 JS-Matthew      js-m                           
-JS-History      js-h    DOCTRINE AND    [DC]   
+JS-History      js-h    DOCTRINE AND    [dc]   
 Articles        a-of-f    COVENANTS            
   of Faith              Sections        dc     
 
-NON-VERSE CONTENT:--Not Yet Impelemented
+NON-VERSE CONTENT:--Not Yet Implemented
                   BIBLE                        
 Epistle Dedicatory                      dedication
               BOOK OF MORMON                   
@@ -104,6 +104,15 @@ Testimony of the Eight Witnesses        eight
 Testimony of the ProphetJoseph Smith    js
 A Brief Explanation of the BofM         explanation
          DOCTRINE AND COVENANTS                
-Official Declarations                   od`)
+Official Declarations                   od
+
+LANGUAGE OPTIONS
+Libraries must be downloaded for each language,
+and downloading is currently only supported for English
+
+Language    Code
+English     eng
+Spanish     spa
+Portuguese  por`)
 	},
 }

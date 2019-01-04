@@ -7,39 +7,38 @@ package parse
 import "strings"
 
 var abbrevMap = map[string]string{
-	"OLD TESTAMENT": "[OT]", "Genesis": "gen", "Exodous": "ex", "Leviticus": "lev", "Deuteronomy": "deut",
-	"Numbers": "num", "Joshua": "jos", "Judges": "judg", "Ruth": "ruth", "1 Samuel": "1-sam",
-	"2 Samuel": "2-sam", "1 Kings": "1-kin", "2 Kings": "2-kin", "1 Chronicles": "1-chr",
-	"2 Chronicles": "2-chr", "Ezra": "ezra", "Nehemiah": "neh", "Esther": "esth", "Job": "job",
-	"Psalms": "ps", "Proverbs": "prov", "Ecclesiastes": "eccl", "Song of Solomon": "song", "Isaiah": "isa",
-	"Jeremiah": "jer", "Lamentations": "lam", "Ezekiel": "ezek", "Daniel": "dan", "Hosea": "hosea",
-	"Joel": "joel", "Amos": "amos", "Obadiah": "obad", "Jonah": "jonah", "Micah": "micah", "Nahum": "nahum",
-	"Habakkuk": "hab", "Zephaniah": "zeph", "Haggai": "hag", "Zechariah": "zech", "Malachi": "mal",
-	"NEW TESTAMENT": "[NT]", "Matthew": "matt", "Mark": "mark", "Luke": "luke", "John": "john",
-	"Acts": "acts", "Romans": "rom", "1 Corinthians": "1-cor", "2 Corinthians": "2-cor", "Galations": "gal",
-	"Ephesians": "eph", "Philippians": "philip", "Colossians": "col", "1 Thessalonians": "1-thes",
-	"2 Thessalonians": "2-thes", "1 Timothy": "1-tim", "2 Timothy": "2-tim", "Titus": "titus",
-	"Philemon": "philem", "Hebrews": "heb", "James": "jas", "1 Peter": "1-pet", "2 Peter": "2-pet",
-	"1 John": "1-jn", "2 John": "2-jn", "3 John": "3-jn", "Jude": "jude", "Revelation": "rev",
+	"old testament": "[ot]", "genesis": "gen", "exodous": "ex", "leviticus": "lev", "deuteronomy": "deut",
+	"numbers": "num", "joshua": "josh", "judges": "judg", "1 samuel": "1-sam",
+	"2 samuel": "2-sam", "1 kings": "1-kin", "2 kings": "2-kin", "1 chronicles": "1-chr",
+	"2 chronicles": "2-chr", "nehemiah": "neh", "esther": "esth",
+	"psalms": "ps", "proverbs": "prov", "ecclesiastes": "eccl", "song of solomon": "song", "ss": "song", "isaiah": "isa",
+	"jeremiah": "jer", "lamentations": "lam", "ezekiel": "ezek", "daniel": "dan", "obadiah": "obad",
+	"habakkuk": "hab", "zephaniah": "zeph", "haggai": "hag", "zechariah": "zech", "malachi": "mal",
+	"new testament": "[nt]", "matthew": "matt",
+	"romans": "rom", "1 corinthians": "1-cor", "2 corinthians": "2-cor", "galations": "gal",
+	"ephesians": "eph", "philippians": "philip", "colossians": "col", "1 thessalonians": "1-thes",
+	"2 thessalonians": "2-thes", "1 timothy": "1-tim", "2 timothy": "2-tim",
+	"philemon": "philem", "hebrews": "heb", "1 peter": "1-pet", "2 peter": "2-pet",
+	"1 john": "1-jn", "2 john": "2-jn", "3 john": "3-jn", "revelation": "rev",
 
-	"BOOK OF MORMON": "[BOM]", "1 Nephi": "1-ne", "2 Nephi": "2-ne", "Jacob": "jacob", "Enos": "enos",
-	"Jarom": "jarom", "Omni": "omni", "Words of Mormon": "w-of-m", "Mosiah": "mosiah", "Alma": "alma",
-	"Helaman": "hel", "3 Nephi": "3-ne", "4 Nephi": "4-ne", "Mormon": "morm", "Ether": "ether",
-	"Moroni": "moro",
+	"book of mormon": "[bom]", "1 nephi": "1-ne", "2 nephi": "2-ne", "words of mormon": "w-of-m",
+	"helaman": "hel", "3 nephi": "3-ne", "4 nephi": "4-ne", "mormon": "morm",
+	"moroni": "moro",
 
-	"DOCTRINE AND COVENANTS": "[DC]", "Sections": "dc",
+	"doctrine and covenants": "[dc]", "sections": "dc",
 
-	"PEARL OF GREAT PRICE": "[PGP]", "Moses": "moses", "Abraham": "abr", "JS-Matthew": "js-m", "JS-History": "js-h",
-	"Articles of Faith": "a-of-f", "Epistle Dedicatory": "dedication", "BofM Title Page": "bofm-title",
-	"Title Page of the Book of Mormon": "title-page", "Introduction": "introduction",
-	"Testimony of the Three Witnesses": "three", "Testimony of the Eight Witnesses": "eight",
-	"Testimony of the ProphetJoseph Smith": "js", "A Brief Explanation of the BofM": "explanation",
-	"Official Declarations": "od",
+	"pearl of great price": "[pgp]", "abraham": "abr", "js-matthew": "js-m", "js-history": "js-h",
+	"articles of faith": "a-of-f", "epistle dedicatory": "dedication", "bofm title page": "bofm-title",
+	"title page of the book of mormon": "title-page", "introduction": "introduction",
+	"testimony of the three witnesses": "three", "testimony of the eight witnesses": "eight",
+	"testimony of the prophet joseph smith": "js", "a brief explanation of the bofm": "explanation",
+	"official declarations": "od",
 }
 
 // PutAbbrevs replaces instances full book names with the supported abbreviated counterparts
 func PutAbbrevs(in string) string {
 	for long, abbrev := range abbrevMap {
+		in = strings.ToLower(in)
 		in = strings.Replace(in, long, abbrev, -1)
 	}
 	return in
