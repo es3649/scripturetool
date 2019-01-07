@@ -2,8 +2,12 @@ package parse
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
+
+	"github.com/es3649/scripturetool/internal/scriptures"
+	"github.com/sirupsen/logrus"
 )
 
 // flags type holds flags used for reference lookup
@@ -133,16 +137,16 @@ func (r *ReferenceChapters) Lookup(f flags) error {
 
 		chap, err := ReadChapter(path)
 
-		if f.Refs {
+		if Flags.Refs {
 			fmt.Printf("----%s %s----\n", r.Book, lookupChap)
 		}
 
-		if f.Headings || f.HeadingsOnly {
+		if Flags.Headings || Flags.HeadingsOnly {
 			fmt.Println(chap.Heading)
 		}
 
 		// if we only wanted the headings...
-		if f.HeadingsOnly {
+		if Flags.HeadingsOnly {
 			// then we're done
 			fmt.Print("\n")
 			continue
@@ -153,16 +157,16 @@ func (r *ReferenceChapters) Lookup(f flags) error {
 			verse := chap.Verses[strconv.Itoa(i)]
 
 			// handle references
-			if f.RefsFull {
+			if Flags.RefsFull {
 				// RefsFull prints the book and chapter for the
 				fmt.Printf(" [%s %s:%d]", r.Book, lookupChap, i)
-			} else if f.Refs {
+			} else if Flags.Refs {
 				// Refs means print the verse numbers
 				fmt.Printf(" %d", i)
 			}
 
 			// should we put the footnotes?
-			if f.Footnotes {
+			if Flags.Footnotes {
 				fmt.Printf(" %s\n", verse.putFootnotes())
 				fmt.Printf("    %s\n\n", verse.formatFootnotes())
 			} else {
@@ -171,5 +175,94 @@ func (r *ReferenceChapters) Lookup(f flags) error {
 		}
 	}
 
+	return nil
+}
+
+// ReferenceBook stores a scripture reference that references a whole book
+// It satisfies the Lookuper interface
+type ReferenceBook string
+
+// Lookup will look up and display the verses references in the ReferenceBook
+// object
+func (r *ReferenceBook) Lookup(f flags) error {
+	// check if the book is a tome, if it is, look it alllllll up
+	var err error
+	switch string(*r) {
+	case "[all]":
+		err = lookupTome(scriptures.OldTestament)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "OldTestament"}).Error(fmt.Sprintf("%v", err))
+		}
+		err = lookupTome(scriptures.NewTestament)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "NewTestament"}).Error(fmt.Sprintf("%v", err))
+		}
+		err = lookupTome(scriptures.BookOfMormon)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "BookOfMormon"}).Error(fmt.Sprintf("%v", err))
+		}
+		err = lookupTome(scriptures.DoctrineAndCovenants)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "DoctrineAndCovenants"}).Error(fmt.Sprintf("%v", err))
+		}
+		err = lookupTome(scriptures.PearlOfGreatPrice)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "PearlOfGreatPrice"}).Error(fmt.Sprintf("%v", err))
+		}
+	case "[ot]":
+		err = lookupTome(scriptures.OldTestament)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "OldTestament"}).Error(fmt.Sprintf("%v", err))
+		}
+	case "[nt]":
+		err = lookupTome(scriptures.NewTestament)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "NewTestament"}).Error(fmt.Sprintf("%v", err))
+		}
+	case "[bofm]":
+		err = lookupTome(scriptures.BookOfMormon)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "BookOfMormon"}).Error(fmt.Sprintf("%v", err))
+		}
+	case "[dc]":
+		err = lookupTome(scriptures.DoctrineAndCovenants)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "DoctrineAndCovenants"}).Error(fmt.Sprintf("%v", err))
+		}
+	case "[pgp]":
+		err = lookupTome(scriptures.PearlOfGreatPrice)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "PearlOfGreatPrice"}).Error(fmt.Sprintf("%v", err))
+		}
+	default:
+		return r.fetch()
+	}
+	return nil
+}
+
+func (r *ReferenceBook) fetch() error {
+	bookPath := "./lib/" + string(*r)
+	files, err := ioutil.ReadDir(bookPath)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		fmt.Println(file.Name())
+	}
+	return nil
+}
+
+func lookupTome(tome scriptures.Tome) error {
+	for _, book := range tome {
+		// create a ReferenceBook for each book in that tome
+		var r = ReferenceBook(book)
+		// lookup that book
+		err := r.Lookup(Flags)
+		// if we get an error, log it
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "lookupTome", "book": book}).Error(fmt.Sprintf("%v", err))
+		}
+	}
 	return nil
 }
