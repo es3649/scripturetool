@@ -135,46 +135,57 @@ func (r *ReferenceChapters) Lookup(f flags) error {
 			return fmt.Errorf("failed to stat %s %s (does that book/chapter exist?)", r.Book, lookupChap)
 		}
 
-		chap, err := ReadChapter(path)
-
-		if Flags.Refs {
-			fmt.Printf("----%s %s----\n", r.Book, lookupChap)
-		}
-
-		if Flags.Headings || Flags.HeadingsOnly {
-			fmt.Println(chap.Heading)
-		}
-
-		// if we only wanted the headings...
-		if Flags.HeadingsOnly {
-			// then we're done
-			fmt.Print("\n")
-			continue
-		}
-
-		// print the text of the chapter
-		for i := 1; i <= len(chap.Verses); i++ {
-			verse := chap.Verses[strconv.Itoa(i)]
-
-			// handle references
-			if Flags.RefsFull {
-				// RefsFull prints the book and chapter for the
-				fmt.Printf(" [%s %s:%d]", r.Book, lookupChap, i)
-			} else if Flags.Refs {
-				// Refs means print the verse numbers
-				fmt.Printf(" %d", i)
-			}
-
-			// should we put the footnotes?
-			if Flags.Footnotes {
-				fmt.Printf(" %s\n", verse.putFootnotes())
-				fmt.Printf("    %s\n\n", verse.formatFootnotes())
-			} else {
-				fmt.Printf(" %s\n", verse.Text)
-			}
+		err = lookupChapterFromPath(r.Book, lookupChap, path)
+		if err != nil {
+			log.WithFields(logrus.Fields{"where": "ReferenceChapters.Lookup", "path": path}).Error("Failed to lookup the given chapter")
 		}
 	}
 
+	return nil
+}
+
+func lookupChapterFromPath(book, chapnum, path string) error {
+	chap, err := ReadChapter(path)
+	if err != nil {
+		return err
+	}
+
+	if Flags.Refs {
+		fmt.Printf("----%s %s----\n", book, chapnum)
+	}
+
+	if Flags.Headings || Flags.HeadingsOnly {
+		fmt.Println(chap.Heading)
+	}
+
+	// if we only wanted the headings...
+	if Flags.HeadingsOnly {
+		// then we're done
+		fmt.Print("\n")
+		return nil
+	}
+
+	// print the text of the chapter
+	for i := 1; i <= len(chap.Verses); i++ {
+		verse := chap.Verses[strconv.Itoa(i)]
+
+		// handle references
+		if Flags.RefsFull {
+			// RefsFull prints the book and chapter for the
+			fmt.Printf(" [%s %s:%d]", book, chapnum, i)
+		} else if Flags.Refs {
+			// Refs means print the verse numbers
+			fmt.Printf(" %d", i)
+		}
+
+		// should we put the footnotes?
+		if Flags.Footnotes {
+			fmt.Printf(" %s\n", verse.putFootnotes())
+			fmt.Printf("    %s\n\n", verse.formatFootnotes())
+		} else {
+			fmt.Printf(" %s\n", verse.Text)
+		}
+	}
 	return nil
 }
 
@@ -247,9 +258,22 @@ func (r *ReferenceBook) fetch() error {
 		return err
 	}
 
-	for _, file := range files {
-		fmt.Println(file.Name())
+	var chaps []string
+	for i := 1; i <= len(files); i++ {
+		chaps = append(chaps, strconv.Itoa(i))
 	}
+	// build a ReferenceChapter object
+	b := &ReferenceChapters{
+		Book:    string(*r),
+		Chapter: chaps,
+	}
+
+	// call Lookup on that
+	err = b.Lookup(Flags)
+	if err != nil {
+		log.WithFields(logrus.Fields{"where": "ReferenceBook.fetch", "book": *r}).Error("Failed to lookup the given chapter")
+	}
+
 	return nil
 }
 
