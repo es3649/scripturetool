@@ -98,8 +98,10 @@ func (p *parser) parseOrder() error {
 			case aNumberState:
 				p.curState = pChapNum
 				p.curChap = tok.Value
-			// case aSemicolonState:
-			// 	p.curState = pStartState
+			case aSemicolonState:
+				curBook := ReferenceBook(p.curBook)
+				p.Results = append(p.Results, &curBook)
+				p.curState = pStartState
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -230,7 +232,7 @@ func (p *parser) parseOrder() error {
 			}
 
 			/////////////
-			// TODO all this below: the verse numbers don't get saved into Lookupers yet
+			// TODO all this below: the verse numbers don't get saved into Lookupers yet on multiple iterations
 			/////////////
 		case pVerseNum:
 			switch tok.Type {

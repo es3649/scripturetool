@@ -61,7 +61,7 @@ func (a *analyzer) analyze() (err error) {
 	for _, curString := range a.toParse {
 		// no length 0 strings!
 		if curString == "" {
-			fmt.Print("Got empty arg")
+			fmt.Println("Got empty arg")
 			continue
 		}
 		log.WithFields(logrus.Fields{"where": "analyze", "arg": curString}).Info("Analyzing argument")
