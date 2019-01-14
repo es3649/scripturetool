@@ -5,7 +5,10 @@ package scriptures
 type Tome []string
 
 // OldTestament is a tome with the books of the Old Testament
-var OldTestament = Tome([]string{"gen"})
+var OldTestament = Tome([]string{"gen", "ex", "lev", "deut", "num", "josh", "judg", "ruth",
+	"1-sam", "2-sam", "1-kgs", "2-kgs", "1-chr", "2-chr", "ezra", "neh", "esth", "job", "ps",
+	"prov", "eccl", "song", "isa", "jer", "lam", "ezek", "dan", "hosea", "joel", "amos", "obad",
+	"jonah", "micah", "nahum", "hab", "zeph", "hag", "zech", "mal"})
 
 // NewTestament is a tome with the books of the New Testament
 var NewTestament = Tome([]string{"matt", "mark", "luke", "john", "acts", "rom", "1-cor", "2-cor",
