@@ -1,4 +1,4 @@
-package parse
+package lookup
 
 import (
 	"fmt"
@@ -16,7 +16,8 @@ type flags struct {
 	Footnotes    bool
 	JST          bool   // not yet implemented
 	Language     string // not yet implemented
-	Link         bool   // not yet implemented
+	Less         bool
+	Link         bool // not yet implemented
 	Headings     bool
 	HeadingsOnly bool
 	Refs         bool

@@ -42,7 +42,6 @@ func Parse(args []string) (err error) {
 	// parse in another thread
 	w.Add(1)
 	go func() {
-		// TODO get results from here
 		pErr = p.parseOrder()
 		w.Done()
 		return
