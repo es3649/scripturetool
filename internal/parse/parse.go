@@ -2,12 +2,16 @@ package parse
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"sync"
 
+	"github.com/es3649/scripturetool/internal/lookup"
+	"github.com/es3649/scripturetool/pkg/log"
 	"github.com/sirupsen/logrus"
 )
 
-var refs []Lookuper
+var refs []lookup.Lookuper
 
 // Parse parses the command line arguments then TODO
 func Parse(args []string) (err error) {
@@ -20,7 +24,7 @@ func Parse(args []string) (err error) {
 		args[i] = PutAbbrevs(args[i])
 	}
 
-	log.WithFields(logrus.Fields{"where": "parse", "args": fmt.Sprintf("%v", args)}).Info("Parsing these arguments")
+	log.Log.WithFields(logrus.Fields{"where": "parse", "args": fmt.Sprintf("%v", args)}).Info("Parsing these arguments")
 
 	analysisResultsChan := make(chan token, 50)
 
@@ -55,13 +59,71 @@ func Parse(args []string) (err error) {
 		return pErr
 	}
 
+	if lookup.Flags.UseStdout {
+		displayAll(p.Results)
+		return nil
+	}
+	return pipeToLess(p.Results)
+}
+
+func displayAll(refs []lookup.Lookuper) {
+
 	// lookup all the references we got from the parser
-	for _, reference := range p.Results {
-		if err := reference.Lookup(Flags); err != nil {
+	for _, reference := range refs {
+		if err := reference.Lookup(lookup.Flags); err != nil {
 			fmt.Printf("Error looking up the given reference: %#v\n", reference)
 			fmt.Printf("  Error is: %v\n", err)
 		}
 	}
+}
+
+func pipeToLess(refs []lookup.Lookuper) error {
+	// check the parse flags to see about using less
+
+	r, w, err := os.Pipe()
+	if err != nil {
+		return fmt.Errorf("Error opening pipe to less: %v", err)
+	}
+
+	stdout := os.Stdout
+	os.Stdout = w
+
+	// open an instance of less
+	less := exec.Command("less")
+	less.Stdin = r
+	less.Stdout = stdout
+	less.Stderr = os.Stderr
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+
+		if err := less.Run(); err != nil {
+			log.Log.WithField("where", "displayAll").Error(fmt.Sprintf("Failed to execute less: %v", err))
+		}
+
+		if err = r.Close(); err != nil {
+			log.Log.WithField("where", "displayAll").Warn("Failed to close pipe (read end)")
+		}
+		wg.Done()
+
+	}()
+
+	// lookup all the references we got from the parser
+	for _, reference := range refs {
+		if err := reference.Lookup(lookup.Flags); err != nil {
+			fmt.Printf("Error looking up the given reference: %#v\n", reference)
+			fmt.Printf("  Error is: %v\n", err)
+		}
+	}
+
+	if err = w.Close(); err != nil {
+		log.Log.WithField("where", "displayAll").Warn("Failed to close pipe (write end)")
+	}
+	// restore stdout
+	os.Stdout = stdout
+
+	wg.Wait()
 
 	return nil
 }

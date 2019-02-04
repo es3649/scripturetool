@@ -2,7 +2,10 @@ package parse
 
 import (
 	"fmt"
+	"strconv"
 
+	"github.com/es3649/scripturetool/internal/lookup"
+	"github.com/es3649/scripturetool/pkg/log"
 	"github.com/sirupsen/logrus"
 )
 
@@ -32,15 +35,15 @@ const (
 type parser struct {
 	curState parserState
 	inChan   chan token
-	Results  []Lookuper
-	curChRef ReferenceChapters
-	curVsRef ReferenceVerses
+	Results  []lookup.Lookuper
+	curChRef lookup.ReferenceChapters
+	curVsRef lookup.ReferenceVerses
 	curBook  string
 	curChap  string
 	curVerse string
 }
 
-func newParser(refs []Lookuper, c chan token) *parser {
+func newParser(refs []lookup.Lookuper, c chan token) *parser {
 	return &parser{
 		inChan:  c,
 		Results: refs,
@@ -99,7 +102,7 @@ func (p *parser) parseOrder() error {
 				p.curState = pChapNum
 				p.curChap = tok.Value
 			case aSemicolonState:
-				curBook := ReferenceBook(p.curBook)
+				curBook := lookup.ReferenceBook(p.curBook)
 				p.Results = append(p.Results, &curBook)
 				p.curState = pStartState
 			default:
@@ -115,7 +118,7 @@ func (p *parser) parseOrder() error {
 			case aColonState:
 				p.curState = pColon
 				// create a ReferenceVerses object
-				p.curVsRef = ReferenceVerses{
+				p.curVsRef = lookup.ReferenceVerses{
 					Book:    p.curBook,
 					Chapter: p.curChap,
 				}
@@ -124,7 +127,7 @@ func (p *parser) parseOrder() error {
 				p.curState = pChapRangeDash
 				// get this chapter
 				// we'll get the end chapter when we finish
-				p.curChRef = ReferenceChapters{
+				p.curChRef = lookup.ReferenceChapters{
 					Book:    p.curBook,
 					Chapter: append(make([]string, 0), p.curChap),
 				}
@@ -132,7 +135,7 @@ func (p *parser) parseOrder() error {
 			case aCommaState:
 				p.curState = pChapComma
 				// log this chapter, then we'll get the rest of them later
-				p.curChRef = ReferenceChapters{
+				p.curChRef = lookup.ReferenceChapters{
 					Book:    p.curBook,
 					Chapter: append(make([]string, 0), p.curChap),
 				}
@@ -140,7 +143,7 @@ func (p *parser) parseOrder() error {
 			case aSemicolonState:
 				p.curState = pStartState
 				// we're finished
-				p.Results = append(p.Results, &ReferenceChapters{
+				p.Results = append(p.Results, &lookup.ReferenceChapters{
 					Book:    p.curBook,
 					Chapter: append(make([]string, 0), p.curChap),
 				})
@@ -222,7 +225,7 @@ func (p *parser) parseOrder() error {
 			case aNumberState:
 				p.curState = pVerseNum
 				p.curVerse = tok.Value
-				p.curVsRef = ReferenceVerses{
+				p.curVsRef = lookup.ReferenceVerses{
 					Book:    p.curBook,
 					Chapter: p.curChap,
 					Verse:   append(make([]string, 0), p.curVerse),
@@ -281,7 +284,7 @@ func (p *parser) parseOrder() error {
 			}
 		}
 	}
-	log.WithFields(logrus.Fields{"where": "parseOrder", "status": "success"}).Info("Finished Parsing")
+	log.Log.WithFields(logrus.Fields{"where": "parseOrder", "status": "success"}).Info("Finished Parsing")
 	if p.curState != pStartState {
 		return fmt.Errorf("End of line while parsing reference")
 	}
@@ -289,12 +292,40 @@ func (p *parser) parseOrder() error {
 	// p.curVerse should be empty if we parsed a chapter reference
 	if p.curVerse == "" {
 		p.Results = append(p.Results, &p.curChRef)
-		log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curChRef)}).Info("Logged a Chapter")
+		log.Log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curChRef)}).Info("Logged a Chapter")
 	} else {
 		p.Results = append(p.Results, &p.curVsRef)
-		log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curVsRef)}).Info("Logged a Verse")
+		log.Log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curVsRef)}).Info("Logged a Verse")
 		p.curVerse = ""
 	}
 
 	return nil
+}
+
+// makeRange takes two numbers (as strings) and creates a range of ints-in-strings
+// from the lower to the upper (if it's actually lower)
+func makeRange(lower, upper string) ([]string, error) {
+	var list []string
+	l, _ := strconv.ParseInt(lower, 10, 64)
+	lo := int(l)
+	u, _ := strconv.ParseInt(upper, 10, 64)
+	up := int(u)
+
+	// bound the numbers to [1,176]
+	if up > 176 {
+		up = 176
+	}
+	if lo < 1 {
+		lo = 1
+	}
+
+	if u <= l {
+		return nil, fmt.Errorf("error in range: %d-%d", l, u)
+	}
+
+	for i := lo + 1; i <= up; i++ {
+		list = append(list, strconv.Itoa(i))
+	}
+
+	return list, nil
 }

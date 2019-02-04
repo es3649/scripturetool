@@ -5,6 +5,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/es3649/scripturetool/pkg/log"
 	"github.com/sirupsen/logrus"
 )
 
@@ -52,7 +53,7 @@ func (a *analyzer) makeToken(tokType analyzerState) {
 		Value: strings.ToLower(a.value),
 		Type:  tokType,
 	}
-	log.WithField("token", fmt.Sprintf("%#v", tok)).Info("Token found")
+	log.Log.WithField("token", fmt.Sprintf("%#v", tok)).Info("Token found")
 	a.outputChan <- tok
 	a.value = ""
 }
@@ -64,9 +65,9 @@ func (a *analyzer) analyze() (err error) {
 			fmt.Println("Got empty arg")
 			continue
 		}
-		log.WithFields(logrus.Fields{"where": "analyze", "arg": curString}).Info("Analyzing argument")
+		log.Log.WithFields(logrus.Fields{"where": "analyze", "arg": curString}).Info("Analyzing argument")
 		if err = a.analyzeOne(curString); err != nil {
-			log.WithFields(logrus.Fields{"where": "analyze", "status": "error"}).Info("Finished Analyzing (outputChan closed)")
+			log.Log.WithFields(logrus.Fields{"where": "analyze", "status": "error"}).Info("Finished Analyzing (outputChan closed)")
 			close(a.outputChan)
 			fmt.Print("analyze-returning\n")
 			return err
@@ -76,7 +77,7 @@ func (a *analyzer) analyze() (err error) {
 	a.makeToken(aSemicolonState)
 	// fmt.Print("made final token\n")
 	close(a.outputChan)
-	log.WithFields(logrus.Fields{"where": "analyze", "status": "success"}).Info("Finished Analyzing (outputChan closed)")
+	log.Log.WithFields(logrus.Fields{"where": "analyze", "status": "success"}).Info("Finished Analyzing (outputChan closed)")
 	return nil
 }
 
@@ -92,7 +93,7 @@ func (a *analyzer) analyzeOne(curString string) error {
 			return a.finish()
 		}
 		c := rune(a.parseString[a.pos])
-		log.WithFields(logrus.Fields{"where": "analyze", "character": string(c), "state": a.curState}).Debug("Parsed character")
+		log.Log.WithFields(logrus.Fields{"where": "analyze", "character": string(c), "state": a.curState}).Debug("Parsed character")
 		switch a.curState {
 		case aStartState:
 			a.start(c)

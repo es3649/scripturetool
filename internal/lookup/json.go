@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/es3649/scripturetool/pkg/log"
 	"github.com/sirupsen/logrus"
 )
 
@@ -69,21 +70,21 @@ func buildChapterRef(book, chapter string) string {
 	path := "./lib/"
 	path = path + book + "/" + chapter + ".json.tar.gz"
 
-	log.WithFields(logrus.Fields{"where": "buildChapterRef", "path": path}).Debug("Built a path to the chapter resource")
+	log.Log.WithFields(logrus.Fields{"where": "buildChapterRef", "path": path}).Debug("Built a path to the chapter resource")
 	return path
 }
 
 // ReadChapter opens a filepath, unzips and reads the json, and returns the chapter
 func ReadChapter(path string) (*Chapter, error) {
 	// open the file
-	log.WithFields(logrus.Fields{"where": "ReadChapter", "path": path}).Debug("Reading the file...")
+	log.Log.WithFields(logrus.Fields{"where": "ReadChapter", "path": path}).Debug("Reading the file...")
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("ReadChapter--failed to open path:\n%v", err)
 	}
 	defer func() {
 		if err := f.Close(); err != nil {
-			log.WithFields(logrus.Fields{"where": "anonymous closer", "error": err}).Errorf("Failed to close file")
+			log.Log.WithFields(logrus.Fields{"where": "anonymous closer", "error": err}).Errorf("Failed to close file")
 		}
 	}()
 
@@ -94,7 +95,7 @@ func ReadChapter(path string) (*Chapter, error) {
 	}
 	defer func() {
 		if err := gz.Close(); err != nil {
-			log.WithFields(logrus.Fields{"where": "anonymous closer", "error": err}).Errorf("Failed to close gReader")
+			log.Log.WithFields(logrus.Fields{"where": "anonymous closer", "error": err}).Errorf("Failed to close gReader")
 		}
 	}()
 
@@ -110,7 +111,7 @@ func ReadChapter(path string) (*Chapter, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ReadChapter--failed to read all from gzip:\n%v", err)
 	}
-	log.WithFields(logrus.Fields{"where": "ReadChapter", "data": string(data)}).Debug("Read these data")
+	// log.Log.WithFields(logrus.Fields{"where": "ReadChapter", "data": string(data)}).Debug("Read these data")
 
 	// unmarshal the data into a new chapter struct
 	var ch Chapter

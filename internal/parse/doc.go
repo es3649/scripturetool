@@ -27,8 +27,8 @@
 // <start>			::= <reference> <referencelist>
 // <referencelist> 	::= ;<reference> <refrencelist> | ; | <lambda>
 // <reference> 		::= <book> | <book> <chapter> <chapterlist> | <book> <chapter> : <verse> <verselist>
-// <book>			::= <string> | <integer> - <string>
-// <string>			::= [::alpha::[]] <string> | <\lambda>
+// <book>			::= <string>
+// <string>			::= [::alnum::[]-] <string> | <\lambda>
 // <lambda> 		::=
 // <integer>		::= [0-9] <integer> | <lambda>
 // <chapter>		::= <integer> | <integerrange>
