@@ -3,6 +3,8 @@ package parse
 import (
 	"fmt"
 	"strings"
+
+	"github.com/es3649/scripturetool/pkg/log"
 )
 
 // TODO this only works with one set of braces, redo it with graph theory
@@ -11,7 +13,7 @@ import (
 // |mark| 1: |2| ;
 // |luke}    |3}
 func expandBraces(s string) (string, error) {
-	log.WithField("value", s).Info("Expanding the argument")
+	log.Log.WithField("value", s).Info("Expanding the argument")
 	i := strings.Index(s, "{")
 	j := strings.Index(s, "}")
 	// for each ocurrence of '{' and '}', expand them
@@ -27,15 +29,15 @@ func expandBraces(s string) (string, error) {
 		pieces := strings.Split(s[i+1:j], ",")
 		s = ""
 		for _, piece := range pieces {
-			log.WithField("value", piece).Debug("Building with piece")
+			log.Log.WithField("value", piece).Debug("Building with piece")
 			s += prefix + piece + suffix + ";"
 		}
 		// reset the conditions to be sure we're good
 		i = strings.Index(s, "{")
 		j = strings.Index(s, "}")
-		log.WithField("value", s).Debug("completed an expansion")
+		log.Log.WithField("value", s).Debug("completed an expansion")
 	}
-	log.WithField("value", s).Info("Expanded the argument")
+	log.Log.WithField("value", s).Info("Expanded the argument")
 	return s, nil
 }
 

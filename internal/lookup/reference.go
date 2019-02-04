@@ -1,4 +1,4 @@
-package parse
+package lookup
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/es3649/scripturetool/internal/scriptures"
+	"github.com/es3649/scripturetool/pkg/log"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,6 +23,7 @@ type flags struct {
 	Refs         bool
 	RefsFull     bool // not yet implemented
 	Paragraphs   bool // not yet implemented
+	UseStdout    bool
 }
 
 // Flags holds info needed for lookup,
@@ -34,34 +36,6 @@ var Flags flags
 // lookup with respect to command line args
 type Lookuper interface {
 	Lookup(flags) error
-}
-
-// makeRange takes two numbers (as strings) and creates a range of ints-in-strings
-// from the lower to the upper (if it's actually lower)
-func makeRange(lower, upper string) ([]string, error) {
-	var list []string
-	l, _ := strconv.ParseInt(lower, 10, 64)
-	lo := int(l)
-	u, _ := strconv.ParseInt(upper, 10, 64)
-	up := int(u)
-
-	// bound the numbers to [1,176]
-	if up > 176 {
-		up = 176
-	}
-	if lo < 1 {
-		lo = 1
-	}
-
-	if u <= l {
-		return nil, fmt.Errorf("error in range: %d-%d", l, u)
-	}
-
-	for i := lo + 1; i <= up; i++ {
-		list = append(list, strconv.Itoa(i))
-	}
-
-	return list, nil
 }
 
 // ReferenceVerses stores a scripture reference containing a series of verses
@@ -137,7 +111,7 @@ func (r *ReferenceChapters) Lookup(f flags) error {
 
 		err = lookupChapterFromPath(r.Book, lookupChap, path)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceChapters.Lookup", "path": path}).Error("Failed to lookup the given chapter")
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceChapters.Lookup", "path": path}).Error("Failed to lookup the given chapter")
 		}
 	}
 
@@ -202,48 +176,48 @@ func (r *ReferenceBook) Lookup(f flags) error {
 	case "[all]":
 		err = lookupTome(scriptures.OldTestament)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "OldTestament"}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "OldTestament"}).Error(fmt.Sprintf("%v", err))
 		}
 		err = lookupTome(scriptures.NewTestament)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "NewTestament"}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "NewTestament"}).Error(fmt.Sprintf("%v", err))
 		}
 		err = lookupTome(scriptures.BookOfMormon)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "BookOfMormon"}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "BookOfMormon"}).Error(fmt.Sprintf("%v", err))
 		}
 		err = lookupTome(scriptures.DoctrineAndCovenants)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "DoctrineAndCovenants"}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "DoctrineAndCovenants"}).Error(fmt.Sprintf("%v", err))
 		}
 		err = lookupTome(scriptures.PearlOfGreatPrice)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "PearlOfGreatPrice"}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "PearlOfGreatPrice"}).Error(fmt.Sprintf("%v", err))
 		}
 	case "[ot]":
 		err = lookupTome(scriptures.OldTestament)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "OldTestament"}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "OldTestament"}).Error(fmt.Sprintf("%v", err))
 		}
 	case "[nt]":
 		err = lookupTome(scriptures.NewTestament)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "NewTestament"}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "NewTestament"}).Error(fmt.Sprintf("%v", err))
 		}
 	case "[bofm]":
 		err = lookupTome(scriptures.BookOfMormon)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "BookOfMormon"}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "BookOfMormon"}).Error(fmt.Sprintf("%v", err))
 		}
 	case "[dc]":
 		err = lookupTome(scriptures.DoctrineAndCovenants)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "DoctrineAndCovenants"}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "DoctrineAndCovenants"}).Error(fmt.Sprintf("%v", err))
 		}
 	case "[pgp]":
 		err = lookupTome(scriptures.PearlOfGreatPrice)
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "PearlOfGreatPrice"}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.Lookup", "tome": "PearlOfGreatPrice"}).Error(fmt.Sprintf("%v", err))
 		}
 	default:
 		return r.fetch()
@@ -271,7 +245,7 @@ func (r *ReferenceBook) fetch() error {
 	// call Lookup on that
 	err = b.Lookup(Flags)
 	if err != nil {
-		log.WithFields(logrus.Fields{"where": "ReferenceBook.fetch", "book": *r}).Error("Failed to lookup the given chapter")
+		log.Log.WithFields(logrus.Fields{"where": "ReferenceBook.fetch", "book": *r}).Error("Failed to lookup the given chapter")
 	}
 
 	return nil
@@ -285,7 +259,7 @@ func lookupTome(tome scriptures.Tome) error {
 		err := r.Lookup(Flags)
 		// if we get an error, log it
 		if err != nil {
-			log.WithFields(logrus.Fields{"where": "lookupTome", "book": book}).Error(fmt.Sprintf("%v", err))
+			log.Log.WithFields(logrus.Fields{"where": "lookupTome", "book": book}).Error(fmt.Sprintf("%v", err))
 		}
 	}
 	return nil
