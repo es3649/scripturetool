@@ -129,7 +129,12 @@ func lookupChapterFromPath(book, chapnum, path string) error {
 	}
 
 	if Flags.Headings || Flags.HeadingsOnly {
-		fmt.Println(chap.Heading)
+		if Flags.RefsFull {
+			fmt.Printf(" [%s %s:H]", book, chapnum)
+		} else if Flags.Refs && !Flags.HeadingsOnly {
+			fmt.Print(" H")
+		}
+		fmt.Printf(" %s\n", chap.Heading)
 	}
 
 	// if we only wanted the headings...
