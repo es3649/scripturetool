@@ -21,21 +21,18 @@
 // be given as one argument. The grammar should also be recorded somewhere,
 // here is probably as good as anywhere.
 //
-// TODO add bash-style curly brace lists
-// add wildcards
-// consider adding tomes
-// <start>			::= <reference> <referencelist>
-// <referencelist> 	::= ;<reference> <refrencelist> | ; | <lambda>
-// <reference> 		::= <book> | <book> <chapter> <chapterlist> | <book> <chapter> : <verse> <verselist>
-// <book>			::= <string>
-// <string>			::= [::alnum::[]-] <string> | <\lambda>
-// <lambda> 		::=
+// <start>			::= <reference> <referencelist> ';'?
+// <referencelist> 	::= ';' <reference> <refrencelist> | ';' | <lambda>
+// <reference> 		::= <book> | <book> (<chapter> <chapterlist> | '*') | <book> (<chapter> | '*') ':' (<verse> <verselist> | '*')
+// <book>			::= [::alnum::[]] <string> | '*'
+// <string>			::= []-::alpha::] <string> | <lambda>
+// <lambda> 		::= ''
 // <integer>		::= [0-9] <integer> | <lambda>
 // <chapter>		::= <integer> | <integerrange>
-// <chapterlist>	::= , <chapter> <chapterlist> | <lambda>
-// <integerrange>	::= <integer> - <integer>
+// <chapterlist>	::= ',' <chapter> <chapterlist> | <lambda>
+// <integerrange>	::= <integer> '-' <integer>
 // <verse>			::= <integer> | <integerrange>
-// <verselist>		::= , <verse> <verserange> | <lambda>
+// <verselist>		::= ',' <verse> <verselist> | <lambda>
 //
 // It would also be good to fix the multithreading. As it was it would
 // deadlock whenever there was a parse error.

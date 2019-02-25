@@ -14,7 +14,7 @@ type parserState int
 const (
 	pStartState       parserState = 0
 	pBookNameNum      parserState = 1
-	pBookNameDash     parserState = 2
+	pBookStar         parserState = 2
 	pBookName         parserState = 3
 	pChapNum          parserState = 4
 	pChapRangeDash    parserState = 5
@@ -28,6 +28,8 @@ const (
 	pVerseRangeDash   parserState = 13
 	pVerseRangeNum    parserState = 14
 	pVerseComma       parserState = 15
+	pChapStar         parserState = 16
+	pVerseStar        parserState = 17
 )
 
 // parser takes tokens from an analyzer. It takes tokens from inChan
@@ -70,6 +72,11 @@ func (p *parser) parseOrder() error {
 			case aBookState:
 				p.curState = pBookName
 				p.curBook = tok.Value
+			case aStarState:
+				p.curState = pBookStar
+				p.curBook = tok.Value
+			case aSemicolonState:
+				// continue
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -78,18 +85,25 @@ func (p *parser) parseOrder() error {
 			// a number must be followed by a dash
 			switch tok.Type {
 			case aDashState:
-				p.curState = pBookNameDash
+				p.curState = pBookName
 				p.curBook = p.curBook + tok.Value
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
 
-		case pBookNameDash:
+		case pBookStar:
 			// a dash must be followed by a book Name
 			switch tok.Type {
-			case aBookState:
-				p.curState = pBookName
-				p.curBook = p.curBook + tok.Value
+			case aNumberState:
+				p.curState = pChapNum
+				p.curChap = tok.Value
+			case aStarState:
+				p.curState = pChapStar
+				p.curChap = tok.Value
+			case aSemicolonState:
+				p.curState = pStartState
+				curBook := lookup.ReferenceBook(p.curBook)
+				p.Results = append(p.Results, &curBook)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -98,6 +112,10 @@ func (p *parser) parseOrder() error {
 			// a book name can be the end of a reference (semicolon or EOF)
 			// or be followed by a colon
 			switch tok.Type {
+			case aDashState:
+				p.curBook = p.curBook + tok.Value
+			case aBookState:
+				p.curBook = p.curBook + tok.Value
 			case aNumberState:
 				p.curState = pChapNum
 				p.curChap = tok.Value
@@ -105,6 +123,10 @@ func (p *parser) parseOrder() error {
 				curBook := lookup.ReferenceBook(p.curBook)
 				p.Results = append(p.Results, &curBook)
 				p.curState = pStartState
+			case aStarState:
+				// then we have a star for the chapter nameq
+				p.curState = pChapStar
+				p.curChap = tok.Value
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -169,6 +191,7 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aSemicolonState:
 				p.curState = pStartState
+				p.Results = append(p.Results, &p.curChRef)
 			case aCommaState:
 				p.curState = pChapComma
 			default:
@@ -193,6 +216,7 @@ func (p *parser) parseOrder() error {
 				p.curState = pChapListDash
 			case aSemicolonState:
 				p.curState = pStartState
+				p.Results = append(p.Results, &p.curChRef)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -216,6 +240,18 @@ func (p *parser) parseOrder() error {
 				p.curState = pChapComma
 			case aSemicolonState:
 				p.curState = pStartState
+				p.Results = append(p.Results, &p.curChRef)
+			default:
+				return fmt.Errorf("Invalid token received: %#v", tok)
+			}
+
+		case pChapStar:
+			switch tok.Type {
+			case aColonState:
+				p.curState = pColon
+			case aSemicolonState:
+				p.Results = append(p.Results, &p.curChRef)
+				p.curState = pStartState
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -230,6 +266,14 @@ func (p *parser) parseOrder() error {
 					Chapter: p.curChap,
 					Verse:   append(make([]string, 0), p.curVerse),
 				}
+			case aStarState:
+				// Then we have a star for a verse number, and we're done!
+				p.curState = pStartState
+				p.Results = append(p.Results, &lookup.ReferenceVerses{
+					Book:    p.curBook,
+					Chapter: p.curChap,
+					Verse:   append(make([]string, 0), tok.Value),
+				})
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -245,6 +289,7 @@ func (p *parser) parseOrder() error {
 				p.curState = pVerseComma
 			case aSemicolonState:
 				p.curState = pStartState
+				p.Results = append(p.Results, &p.curVsRef)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -269,6 +314,7 @@ func (p *parser) parseOrder() error {
 				p.curState = pVerseComma
 			case aSemicolonState:
 				p.curState = pStartState
+				p.Results = append(p.Results, &p.curVsRef)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -282,6 +328,15 @@ func (p *parser) parseOrder() error {
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
+
+		case pVerseStar:
+			switch tok.Type {
+			case aSemicolonState:
+				p.Results = append(p.Results, &p.curVsRef)
+				p.curState = pStartState
+			default:
+				return fmt.Errorf("Invalid token received: %#v", tok)
+			}
 		}
 	}
 	log.Log.WithFields(logrus.Fields{"where": "parseOrder", "status": "success"}).Info("Finished Parsing")
@@ -290,14 +345,14 @@ func (p *parser) parseOrder() error {
 	}
 
 	// p.curVerse should be empty if we parsed a chapter reference
-	if p.curVerse == "" {
-		p.Results = append(p.Results, &p.curChRef)
-		log.Log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curChRef)}).Info("Logged a Chapter")
-	} else {
-		p.Results = append(p.Results, &p.curVsRef)
-		log.Log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curVsRef)}).Info("Logged a Verse")
-		p.curVerse = ""
-	}
+	// if p.curVerse == "" {
+	// 	p.Results = append(p.Results, &p.curChRef)
+	// 	log.Log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curChRef)}).Info("Logged a Chapter")
+	// } else {
+	// 	p.Results = append(p.Results, &p.curVsRef)
+	// 	log.Log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curVsRef)}).Info("Logged a Verse")
+	// 	p.curVerse = ""
+	// }
 
 	return nil
 }
