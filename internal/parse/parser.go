@@ -102,8 +102,7 @@ func (p *parser) parseOrder() error {
 				p.curChap = tok.Value
 			case aSemicolonState:
 				p.curState = pStartState
-				curBook := lookup.ReferenceBook(p.curBook)
-				p.Results = append(p.Results, &curBook)
+				p.logBookReference(pBookStar)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -120,9 +119,9 @@ func (p *parser) parseOrder() error {
 				p.curState = pChapNum
 				p.curChap = tok.Value
 			case aSemicolonState:
-				curBook := lookup.ReferenceBook(p.curBook)
-				p.Results = append(p.Results, &curBook)
 				p.curState = pStartState
+				// curBook := lookup.ReferenceBook(p.curBook)
+				p.logBookReference(pBookName)
 			case aStarState:
 				// then we have a star for the chapter nameq
 				p.curState = pChapStar
@@ -139,11 +138,6 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aColonState:
 				p.curState = pColon
-				// create a ReferenceVerses object
-				p.curVsRef = lookup.ReferenceVerses{
-					Book:    p.curBook,
-					Chapter: p.curChap,
-				}
 
 			case aDashState:
 				p.curState = pChapRangeDash
@@ -165,10 +159,11 @@ func (p *parser) parseOrder() error {
 			case aSemicolonState:
 				p.curState = pStartState
 				// we're finished
-				p.Results = append(p.Results, &lookup.ReferenceChapters{
+				p.curChRef = lookup.ReferenceChapters{
 					Book:    p.curBook,
 					Chapter: append(make([]string, 0), p.curChap),
-				})
+				}
+				p.logChapterReference(pChapNum)
 
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
@@ -191,7 +186,7 @@ func (p *parser) parseOrder() error {
 			switch tok.Type {
 			case aSemicolonState:
 				p.curState = pStartState
-				p.Results = append(p.Results, &p.curChRef)
+				p.logChapterReference(pChapRangeDash)
 			case aCommaState:
 				p.curState = pChapComma
 			default:
@@ -216,7 +211,7 @@ func (p *parser) parseOrder() error {
 				p.curState = pChapListDash
 			case aSemicolonState:
 				p.curState = pStartState
-				p.Results = append(p.Results, &p.curChRef)
+				p.logChapterReference(pChapListNum)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -240,7 +235,7 @@ func (p *parser) parseOrder() error {
 				p.curState = pChapComma
 			case aSemicolonState:
 				p.curState = pStartState
-				p.Results = append(p.Results, &p.curChRef)
+				p.logChapterReference(pChapListRangeNum)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -250,8 +245,8 @@ func (p *parser) parseOrder() error {
 			case aColonState:
 				p.curState = pColon
 			case aSemicolonState:
-				p.Results = append(p.Results, &p.curChRef)
 				p.curState = pStartState
+				p.logChapterReference(pChapStar)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -269,11 +264,12 @@ func (p *parser) parseOrder() error {
 			case aStarState:
 				// Then we have a star for a verse number, and we're done!
 				p.curState = pStartState
-				p.Results = append(p.Results, &lookup.ReferenceVerses{
+				p.curVsRef = lookup.ReferenceVerses{
 					Book:    p.curBook,
 					Chapter: p.curChap,
 					Verse:   append(make([]string, 0), tok.Value),
-				})
+				}
+				p.logVerseReference(pColon)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -289,7 +285,7 @@ func (p *parser) parseOrder() error {
 				p.curState = pVerseComma
 			case aSemicolonState:
 				p.curState = pStartState
-				p.Results = append(p.Results, &p.curVsRef)
+				p.logVerseReference(pVerseNum)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -314,7 +310,7 @@ func (p *parser) parseOrder() error {
 				p.curState = pVerseComma
 			case aSemicolonState:
 				p.curState = pStartState
-				p.Results = append(p.Results, &p.curVsRef)
+				p.logVerseReference(pVerseRangeNum)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -332,8 +328,8 @@ func (p *parser) parseOrder() error {
 		case pVerseStar:
 			switch tok.Type {
 			case aSemicolonState:
-				p.Results = append(p.Results, &p.curVsRef)
 				p.curState = pStartState
+				p.logVerseReference(pVerseStar)
 			default:
 				return fmt.Errorf("Invalid token received: %#v", tok)
 			}
@@ -343,17 +339,6 @@ func (p *parser) parseOrder() error {
 	if p.curState != pStartState {
 		return fmt.Errorf("End of line while parsing reference")
 	}
-
-	// p.curVerse should be empty if we parsed a chapter reference
-	// if p.curVerse == "" {
-	// 	p.Results = append(p.Results, &p.curChRef)
-	// 	log.Log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curChRef)}).Info("Logged a Chapter")
-	// } else {
-	// 	p.Results = append(p.Results, &p.curVsRef)
-	// 	log.Log.WithFields(logrus.Fields{"where": "parseOrder", "reference": fmt.Sprintf("%#v", p.curVsRef)}).Info("Logged a Verse")
-	// 	p.curVerse = ""
-	// }
-
 	return nil
 }
 
@@ -383,4 +368,25 @@ func makeRange(lower, upper string) ([]string, error) {
 	}
 
 	return list, nil
+}
+
+// logBookReference copies the current book field then stows the copy in the results slice
+func (p *parser) logBookReference(state parserState) {
+	toSave := lookup.ReferenceBook(p.curBook)
+	p.Results = append(p.Results, &toSave)
+	log.Log.WithFields(logrus.Fields{"where": "logVerseReference", "state": state, "reference": fmt.Sprintf("%#v", p.curBook)}).Info("Logged a Verse")
+}
+
+// logChapterReference copies the current chapterReference field then stows the copy in the results slice
+func (p *parser) logChapterReference(state parserState) {
+	toSave := p.curChRef
+	p.Results = append(p.Results, &toSave)
+	log.Log.WithFields(logrus.Fields{"where": "logChapterReference", "state": state, "reference": fmt.Sprintf("%#v", p.curChRef)}).Info("Logged a Chapter")
+}
+
+// logVerseReference copies the current verseReference field then stows the copy in the results slice
+func (p *parser) logVerseReference(state parserState) {
+	toSave := p.curVsRef
+	p.Results = append(p.Results, &toSave)
+	log.Log.WithFields(logrus.Fields{"where": "logVerseReference", "state": state, "reference": fmt.Sprintf("%#v", p.curVsRef)}).Info("Logged a Verse")
 }
