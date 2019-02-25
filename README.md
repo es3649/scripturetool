@@ -20,6 +20,9 @@ This content is publicly available on lds.org/scriptures, and I personally invit
 
 ## Status:
  * Parses correctly formatted references
+    * Looks up entire books or entire tomes
+ * Default pages to `less`
+    * Reverts to stdout with the `-o` flag
  * Library compiles
     * lib-download.sh works but takes HOURS to run, fix this
        * multithreading?
@@ -27,11 +30,7 @@ This content is publicly available on lds.org/scriptures, and I personally invit
  * Add boundaries on the verses.
     * No chapter greater than 150 (Psalms)
     * No verse greater than 176 (Ps 119) 
- * Panics when putting footnotes if there are none
  * Implement all cmd line flags
- * Multiple args doesn't work
  * Implement the cool features
-    * Tome classes
     * Brace expansion {Matt,Mark,Luke}
     * Use of wildcard (*)
-    * Semicolon stuff (reevaluate grammar)

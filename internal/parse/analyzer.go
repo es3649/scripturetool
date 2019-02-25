@@ -9,18 +9,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type analyzerState int
+type analyzerState rune
 
 const (
-	aStartState     analyzerState = 0
-	aSemicolonState analyzerState = 1
-	aColonState     analyzerState = 2
-	aCommaState     analyzerState = 3
-	aDashState      analyzerState = 4
-	aNumberState    analyzerState = 5
-	aBookState      analyzerState = 6
-	aUndefinedState analyzerState = 7
-	aStarState      analyzerState = 8
+	aStartState      analyzerState = 0
+	aSemicolonState  analyzerState = 1
+	aColonState      analyzerState = 2
+	aCommaState      analyzerState = 3
+	aDashState       analyzerState = 4
+	aNumberState     analyzerState = 5
+	aBookState       analyzerState = 6
+	aUndefinedState  analyzerState = 7
+	aStarState       analyzerState = 8
+	aCurlyBraceState analyzerState = 9
 )
 
 type token struct {
@@ -120,15 +121,17 @@ func (a *analyzer) finish() error {
 	case aNumberState:
 		a.makeToken(aNumberState)
 		// fmt.Print("finish analysis-number state\n")
-		return nil
 	case aBookState:
 		// fmt.Print("finish analysis-book state\n")
 		a.makeToken(aBookState)
-		return nil
+	case aStarState:
+		a.makeToken(aStarState)
 	default:
 		// fmt.Print("finish analysis-bad state\n")
 		return fmt.Errorf("Invalid end of string: %s", a.value)
 	}
+	a.makeToken(aSemicolonState)
+	return nil
 }
 
 func (a *analyzer) semicolon(c rune) {

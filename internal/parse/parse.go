@@ -70,6 +70,7 @@ func displayAll(refs []lookup.Lookuper) {
 
 	// lookup all the references we got from the parser
 	for _, reference := range refs {
+		log.Log.WithFields(logrus.Fields{"where": "displayAll", "reference": fmt.Sprintf("%#v", reference)}).Info("Looking up Refrence")
 		if err := reference.Lookup(lookup.Flags); err != nil {
 			fmt.Printf("Error looking up the given reference: %#v\n", reference)
 			fmt.Printf("  Error is: %v\n", err)
