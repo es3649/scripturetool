@@ -12,6 +12,8 @@ make install
 
 It will download the library files from lds.org and clean them up, but it will take several hours to do so.
 
+Or, a copy of the libraries can be downloaded [here](students.cs.byu.edo/~seric/scripturetool/lib/lib.tar.gz)
+
 ### Copyright Disclaimer
 
 I do not own the content that this tool is designed to organize and recall. Intellectual Reserve, Inc. is not affiliated with nor do they endorse this project.

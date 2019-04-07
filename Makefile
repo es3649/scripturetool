@@ -2,8 +2,7 @@
 BINDIR := $(GOPATH)/bin
 GODEP := $(BINDIR)/dep
 
-GOMETALINTER_VERSION := 2.0.5
-GOMETALINTER := $(BINDIR)/gometalinter
+GOMETALINTER := $(BINDIR)/golangci-lint
 
 all: dep lint build
 
@@ -15,7 +14,7 @@ dep: $(GODEP)
 # make sure there are no style errors
 .PHONY: lint
 lint: $(GOMETALINTER)
-	$(GOMETALINTER) --vendor ./...
+	$(GOMETALINTER) run
 
 # build the tool
 .PHONY: build
@@ -26,7 +25,7 @@ build:
 # have to run with sudo
 .PHONY: install
 install: build
-	./cmd/lib-download/lib-download.sh
+	# ./cmd/lib-download/lib-download.sh
 	
 # move the library and the executable to /etc/scripturetool
 # mkdir /etc/scripturetool
