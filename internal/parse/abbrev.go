@@ -14,6 +14,7 @@ var abbrevMap = map[string]string{
 	"psalms": "ps", "proverbs": "prov", "ecclesiastes": "eccl", "song of solomon": "song", "ss": "song", "isaiah": "isa",
 	"jeremiah": "jer", "lamentations": "lam", "ezekiel": "ezek", "daniel": "dan", "obadiah": "obad",
 	"habakkuk": "hab", "zephaniah": "zeph", "haggai": "hag", "zechariah": "zech", "malachi": "mal",
+
 	"new testament": "[nt]", "matthew": "matt",
 	"romans": "rom", "1 corinthians": "1-cor", "2 corinthians": "2-cor", "galations": "gal",
 	"ephesians": "eph", "philippians": "philip", "colossians": "col", "1 thessalonians": "1-thes",
@@ -21,9 +22,9 @@ var abbrevMap = map[string]string{
 	"philemon": "philem", "hebrews": "heb", "1 peter": "1-pet", "2 peter": "2-pet",
 	"1 john": "1-jn", "2 john": "2-jn", "3 john": "3-jn", "revelation": "rev",
 
-	"book of mormon": "[bom]", "1 nephi": "1-ne", "2 nephi": "2-ne", "words of mormon": "w-of-m",
-	"helaman": "hel", "3 nephi": "3-ne", "4 nephi": "4-ne", "mormon": "morm",
-	"moroni": "moro",
+	"book of mormon": "[bom]", "1 nephi": "1-ne", "2 nephi": "2-ne", "words of mormon": "w-of-m", "msh": "mosiah",
+	"helaman": "hel", "3 nephi": "3-ne", "4 nephi": "4-ne", "mormon": "morm", "eth": "ether",
+	"moroni": "moro", "mni": "moro",
 
 	"doctrine and covenants": "[dc]", "sections": "dc",
 
