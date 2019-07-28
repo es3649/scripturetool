@@ -26,7 +26,7 @@ build:
 # have to run with sudo
 .PHONY: install
 install: build
-	./cmd/lib-download/lib-download.sh
+	# ./cmd/lib-download/lib-download.sh
 	
 # move the library and the executable to /etc/scripturetool
 # mkdir /etc/scripturetool

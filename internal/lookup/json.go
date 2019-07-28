@@ -13,6 +13,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const libLocation string = "/usr/local/scripturetool/lib/"
+
 // Chapter stores a chapter or scripture
 type Chapter struct {
 	Book    string
@@ -67,7 +69,7 @@ func (v Verse) formatFootnotes() string {
 
 func buildChapterRef(book, chapter string) string {
 	// lib location should be in the same working directory as the executable
-	path := "./lib/"
+	path := libLocation
 	path = path + book + "/" + chapter + ".json.tar.gz"
 
 	log.Log.WithFields(logrus.Fields{"where": "buildChapterRef", "path": path}).Debug("Built a path to the chapter resource")

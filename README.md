@@ -5,18 +5,26 @@ This project is specifically designed for faster scripture lookup
 
 ## Installation:
 
-Turns out you can just do 
+### Build from source
+As of v0.3.0, you can actually run
 ```
-make install
+sudo make install
 ```
 
-It will download the library files from lds.org and clean them up, but it will take several hours to do so.
+It will download the library files and build executables to useful places
+
+### Download binaries
+
+Use the installer script by running your favorite version of
+```
+curl <some-url> | sudo sh
+```
 
 ### Copyright Disclaimer
 
 I do not own the content that this tool is designed to organize and recall. Intellectual Reserve, Inc. is not affiliated with nor do they endorse this project.
 
-This content is publicly available on lds.org/scriptures, and I personally invite everyone to read it and learn more about Jesus Christ and his restored Gospel.
+This content is publicly available at churchofjesuschrist.org/scriptures, and I personally invite everyone to read it and learn more about Jesus Christ and his restored Gospel.
 
 ## Status:
  * Parses correctly formatted references
