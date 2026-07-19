@@ -15,7 +15,7 @@ var abbrevMap = map[string]string{
 	"jeremiah": "jer", "lamentations": "lam", "ezekiel": "ezek", "daniel": "dan", "obadiah": "obad",
 	"habakkuk": "hab", "zephaniah": "zeph", "haggai": "hag", "zechariah": "zech", "malachi": "mal",
 	"new testament": "[nt]", "matthew": "matt",
-	"romans": "rom", "1 corinthians": "1-cor", "2 corinthians": "2-cor", "galations": "gal",
+	"romans": "rom", "1 corinthians": "1-cor", "2 corinthians": "2-cor", "galatians": "gal",
 	"ephesians": "eph", "philippians": "philip", "colossians": "col", "1 thessalonians": "1-thes",
 	"2 thessalonians": "2-thes", "1 timothy": "1-tim", "2 timothy": "2-tim",
 	"philemon": "philem", "hebrews": "heb", "1 peter": "1-pet", "2 peter": "2-pet",
